@@ -1,0 +1,63 @@
+{
+	"manifest_version": 2
+	, "name": "Tiled Tab Groups"
+	, "description": "Tiled tab groups. Based on Totally not Panorama 0.0.10"
+	, "version": "0.15.13"
+	, "icons": {
+		"16": "icons/logo/logo-16.png"
+		, "32": "icons/logo/logo-32.png"
+		, "64": "icons/logo/logo-64.png"
+	},
+
+	"commands": {
+		"cycle-next-group": {
+			"description": "Cycle to next group"
+		}
+		, "cycle-previous-group": {
+			"description": "Cycle to previous group"
+		}
+		, "open-panorama": {
+			"suggested_key": {
+				"default": "F2"
+			}
+			, "description": "Open Tab Group view"
+		}
+		, "_execute_browser_action": {
+			"description": "Open Groups Panel"
+		}
+	},
+
+	"applications": {
+		"gecko": {
+			"id": "{dcdaadfa-21f1-4853-9b34-aad681fff6f3}"
+			, "strict_min_version": "59.0a1"
+		}
+	},
+
+	"background": {
+		"scripts": [
+			"js/groups.js", "js/tabs.js", "js/const.js"
+			, "js/tabCatch.js", "js/migrate.js"
+			, "js/bgViews.js", "js/background.js"
+		]
+	},
+
+	"browser_action": {
+		"default_icon": "icons/logo/logo-16.png"
+		, "default_popup": "popup.html"
+	},
+
+	"options_ui": {
+		"page": "options.html"
+	},
+
+	"permissions": [
+		"tabs"
+		, "sessions"
+		, "downloads"
+		, "tabHide"
+		, "storage"
+		, "webNavigation"
+		, "menus"
+	]
+}

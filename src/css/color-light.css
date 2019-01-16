@@ -1,0 +1,27 @@
+:root {
+	--main-background: #f9f9fa;
+	--group-background: #fff;
+	--main-border: #d7d7db;
+	
+	--text-light: #0c0c0d;
+	--text-medium: #777;
+	--text-input: #0c0c0d;
+
+	--hover-color: #70aeed;
+	--active-color: #0a84ff;
+
+	--icon-color: #000;
+
+	--group-separator: #d7d7db;
+
+	--tab-height: 26px;
+	--group-margin : 3px;
+	--border-size: 1px;
+	--icon-scale: 0.7;
+
+	--selected-color: #4a93db;
+}
+
+.icon:hover {
+	filter: contrast(1) brightness(0);
+}

@@ -1,0 +1,32 @@
+:root {
+	--main-background: #212121;
+	--group-background: #373737;
+	--main-border: #555;
+	--text-light: #E0E0E0;
+	--text-medium: #9E9E9E;
+	--text-input: #4FC3F7;
+
+	--hover-color: #ff9400;
+	--active-color: #45a1ff;
+
+	--icon-color: #bebebe;
+
+	--group-separator: #424242;
+
+	--tab-height: 26px;
+	--group-margin : 3px;
+	--border-size: 1px;
+	--icon-scale: 0.7;
+
+	--selected-color: #304FFE;
+}
+
+.h-red:hover
+{
+	filter: contrast(0) sepia(100%) brightness(0.7) saturate(10) hue-rotate(320deg);
+}
+
+.h-blue:hover
+{
+	filter: contrast(0) sepia(100%) brightness(1.2) saturate(7) hue-rotate(170deg);
+}

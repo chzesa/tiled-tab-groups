@@ -1,0 +1,61 @@
+.shortcut_node {
+	overflow: auto;
+}
+
+.shortcut_node:hover {
+	background-color: #EEE;
+}
+
+.arrow_button_container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.rule {
+	display: flex;
+}
+
+.rule * {
+	float: left;
+}
+
+#tab-catch-rules {
+	margin: 10px 0; 
+}
+
+.regex {
+	width: calc(  100% - 20px);
+}
+
+.rule .icon {
+	cursor: pointer;
+}
+
+.hidden {
+	display: none;
+}
+
+.icon-delete {
+	float: right;
+}
+
+.full-width {
+	width: 100%;
+}
+
+.css-field {
+	height: 100px;
+}
+
+.debug {
+	height: 400px;
+}
+
+.floatleft {
+	float:left;
+}
+
+.floatright {
+	float:right;
+}

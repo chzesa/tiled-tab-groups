@@ -1,0 +1,108 @@
+@import url("color.css");
+@import url("icon.css");
+
+body
+{
+	margin: var(--group-margin);
+	background-color: var(--main-background);
+	font-family: sans-serif;
+	-moz-user-select: none;
+	color: var(--text-light);
+}
+
+.group
+{
+	cursor: pointer;
+	color: var(--text-light);
+	margin-top: 1px;
+	width: 180px;
+	height: var(--tab-height);
+	background-color: var(--group-background);
+}
+
+.group .active
+{
+	color: var(--active-color);
+}
+
+.group:hover
+{
+	color: var(--hover-color);
+}
+
+#stash > .group
+{
+	cursor: auto;
+	color: var(--text-medium);
+}
+
+#stash > .group:hover
+{
+	color: var(--text-light);
+}
+
+.hidden
+{
+	display: none;
+}
+
+.group .name,
+.group .count
+{
+	margin-left: var(--group-margin);
+	float: left;
+	line-height: var(--tab-height);
+	font-size: 14px;
+}
+
+.group .name
+{
+	text-overflow: clip;
+	white-space: nowrap;
+	overflow: hidden;
+	max-width: calc(180px - var(--group-margin) * 2);
+}
+
+#stash > .group .name
+{
+	max-width: calc(180px - var(--group-margin) * 2 - var(--tab-height));
+}
+
+.group .count
+{
+	float: right;
+	margin-right: var(--group-margin);
+}
+
+#toolbar
+{
+	width: 100%;
+	height: var(--tab-height);
+	margin-top: var(--group-margin);
+}
+
+.icon
+{
+	cursor: pointer;
+	float: right;
+}
+
+.group .icon
+{
+	display: none;
+}
+
+.group:hover .icon
+{
+	display: initial;
+}
+
+#groups > .group:hover > .icon-unstash
+{
+	display: none;
+}
+
+.icon:hover
+{
+	filter: contrast(0) brightness(2);
+}

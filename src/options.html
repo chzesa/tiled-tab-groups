@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/options.css">
+	<link rel="stylesheet" type="text/css" href="css/icon.css">
+	<script type="text/javascript" src="js/const.js"></script>
+	<script type="text/javascript" src="js/comms.js"></script>
+	<script type="text/javascript" src="js/groups.js"></script>
+	<script type="text/javascript" src="js/tabs.js"></script>
+	<script type="text/javascript" src="js/options.js"></script>
+	<script type="text/javascript" src="js/htmlUtil.js"></script>
+	<script type="text/javascript" src="js/tabCatch.js"></script>
+</head>
+<body>
+<section>
+	<h2>Appearance</h2>
+	<div><input id ="light_theme" type ="checkbox"/><span>Use light theme</span></div>
+</section>
+<section>
+	<h2>Shortcuts</h2>
+	<div id="shortcuts"></div>
+	<h3>Other shortcut options</h3>
+	<div><input id ="numKey" type ="checkbox"/><span>Use number keys as hotkeys when popup panel is displayed</span></div>
+</section>
+<section>
+	<h2>External addons</h2>
+	<h3>Tree Style Tab</h3>
+	<div><input id ="tst" type ="checkbox"/><span>Show Tree Style Tabs' indentations in groups view</span></div>
+	<div><input id ="tst_context" type ="checkbox" /><span>Add tab context menu elements to Tree Style Tab sidebar context menu. (enabling requires reload of addon, reload TST after disable)</span></div>
+	<div><input id ="tst_tree_close" type ="checkbox"/><span>Expand a tab's tree before closing the tab. (Closing the root root of collapsed tree closes all children)</span></div>
+
+	<h3>ftt</h3>
+	<div><input id ="ftt" type ="checkbox"/><span>Show ftt indentations in groups view (TST indentations take precedence)</span></div>
+</section>
+	<!-- <div><span>Move children with parent</span><input id ="tst_move" type ="checkbox" style="float:left"/></div> -->
+	<!-- <div><span>Also highlight tabs in multiselect api upon selection in tab groups view (enable browser.tabs.multiselect)</span><input id ="multisel_api" type ="checkbox" style="float:left"/></div> -->
+<section>
+	<h2>Tab Catch</h2>
+	<p>Tab Catch enables the use of rules to automatically assign tabs to groups based on the tab's url and/or title when navigating to a new URL.</p>
+	<p>There are two rule modes: </p>
+	<ul><li>wildcards, e.g. '*.google.com' to match google.com and all of it's subdomains</li>
+		<li>regular expressions, e.g. 'Youtube\.com' for the expression '/Youtube\.com/i'</li> </ul>
+	<div><input id ="regex_over_wildcard" type ="checkbox"/><span>Use regular expressions matching mode</span></div>
+	<p>Rules created in wildcards mode also apply in regex mode, however any rules that have been last modified in regex mode are ignored if the current mode is wildcards mode.</p>
+	<p>If both 'Test Url' and 'Test Title' are unchecked the rule is ignored.</p>
+	<button id="add-catch-rule">New rule</button>
+	<div id = "tab-catch-rules"></div>
+	<button id="run-tab-catch">Perform tab catch on all tabs</button><span>Note: Please refresh groups view afterwards.</span>
+</section>
+	<!-- <h3>Groups info</h3> -->
+	<!-- <div id = "group-info"></div> -->
+	
+<section>
+	<h2>Customize Style</h2>
+	<h3>Groups view CSS</h3>
+	<textarea id="panorama_css" class="full-width css-field"></textarea>
+	<h3>Popup CSS</h3>
+	<textarea id="popup_css" class="full-width css-field"></textarea>
+</section>
+<section>
+	<h2>Backups</h2>
+<!-- 	<h3>Import</h3>
+		<p>Imported backups will open in new windows and not over write anything.<br>You can also import backups from the old "Tab Groups" add-on.</p>
+		<p><input id="backupFileInput" name="backupFile" type="file" accept=".json"></p> -->
+	<h3>Export</h3>
+	<button id="saveBackupButton">Save backup</button>
+</section>
+</body>
+</html>

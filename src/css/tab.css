@@ -1,0 +1,67 @@
+.tab,
+.newtab {
+	cursor: pointer;
+	display: flex;
+
+	color: var(--text-light);
+	height: var(--tab-height);
+	border: var(--main-border) var(--border-size) solid;
+	background-color: var(--group-background);
+}
+
+.tab:hover,
+.newtab:hover {
+	border-color: var(--hover-color);
+}
+
+.tab.selected {
+	border-color: var(--active-color);
+}
+
+.tab.inactive {
+	font-style: italic;
+	color: var(--text-medium);
+}
+
+.newtab {
+	background-image: url(/icons/plus.svg);
+	background-repeat: no-repeat;
+	background-size: calc(var(--tab-height) * 0.6);
+	background-position: center;
+}
+
+.tab.drag {
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+	opacity: 0.5;
+	transform: scale(0.9);
+}
+
+.tab .name {
+	width: calc(100% - 2 * var(--tab-height));
+
+	overflow: hidden;
+	text-overflow: '..';
+	white-space: nowrap;
+
+	font-size: 12px;
+	line-height: var(--tab-height);
+	text-align: left;
+}
+
+.tab .favicon {
+	width: var(--tab-height);
+
+	background-image: url(/icons/maximize.svg);
+	background-repeat: no-repeat;
+	background-size: calc(var(--tab-height) * 0.6);
+	background-position: center;
+	display: block;
+}
+
+.icon:hover {
+	filter: contrast(0) brightness(4);
+}
+
+.selection {
+	background-color: var(--selected-color);
+}

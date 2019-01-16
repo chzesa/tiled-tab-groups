@@ -1,0 +1,102 @@
+.group {
+	border-right: var(--group-separator) 1px dashed;
+	border-bottom: var(--group-separator) 1px dashed;
+	margin-top: var(--group-margin);
+}
+
+.group .header,
+.group .content
+{
+	margin-left: var(--group-margin);
+	margin-right: var(--group-margin);
+	width: calc(100% - 2 * var(--group-margin));
+}
+
+.group .header {
+	height: var(--tab-height);
+}
+
+.group .header input {
+	border: none;
+	background: none;
+	width: calc(100% - 2 * var(--group-margin) - 5 * var(--tab-height));
+	color: var(--text-light);
+	overflow: hidden;
+	font-size: 14px;
+	line-height: var(--tab-height);
+}
+
+.icon
+{
+	cursor: pointer;
+	float: right;
+}
+
+.icon:hover
+{
+	filter: contrast(0) brightness(2);
+}
+
+.group .header .tab_count {
+	background-color: var(--group-background);
+
+	float: right;
+
+	width: var(--tab-height);
+	height: var(--tab-height);
+
+	text-align: center;
+	color: var(--text-light);
+	font-size: 12px;
+	font-weight: bold;
+	line-height: var(--tab-height);
+}
+
+.group .content {
+	max-width: 100%;
+	position: absolute;
+	margin-top: var(--group-margin);
+	height: calc(100% - var(--group-margin) - var(--tab-height));
+
+	overflow-y: -moz-scrollbars-none;
+	overflow-x: hidden;
+}
+
+
+.scroll_padding {
+	/*height: calc(100% - var(--tab-height));*/
+}
+
+#pinnedTabs .tab {
+	width: 28px;
+	height: 28px;
+	background: var(--group-background);
+	border-left: 0px;
+	border-bottom: 0px;
+	border-top: var(--main-border) var(--border-size) solid;
+}
+
+#pinnedtabs .tab:first-of-type {
+	margin-top: 2px;
+}
+
+#pinnedTabs .tab .close,
+#pinnedTabs .tab .name {
+	display: none;
+}
+
+#pinnedTabs .tab .inner {
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-image: none !important;
+	border: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#pinnedTabs .tab .favicon {
+	border: 0;
+}
