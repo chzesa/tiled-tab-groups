@@ -1,0 +1,3 @@
+[submodule "js-syncqueue"]
+	path = src/external/js-syncqueue
+	url = https://github.com/chzesa/js-syncqueue
