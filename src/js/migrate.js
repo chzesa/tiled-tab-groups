@@ -1,22 +1,43 @@
-function isVersionOlderThan(a, comp) {
-	let r = /(\d+)\.(\d+)\.(\d+)/;
-	let va = r.exec(a);
-	let vcomp = r.exec(comp);
+async function migrateSettings() {
+	function olderVersion(a, comp) {
+		let r = /(\d+)\.(\d+)\.(\d+)/;
+		let va = r.exec(a);
+		let vcomp = r.exec(comp);
 
-	for (let i = 1; i < 4; i++) {
-		if (va[i] < vcomp[i]) {
-			return true;
+		for (var i = 1; i < 4; i++) {
+			if (va[i] < vcomp[i]) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	function setDefaults(config) {
+		let defaults = {
+			light_theme: true
+			, regex_over_wildcard: false
+			, rules: []
+			, regex_nextId: 0
+			, use_tst_indent: false
+			, use_tst_context: false
+			, use_tst_tree_close: false
+			, ftt: false
+			, use_panel_numkey: false
+			, panorama_css: ""
+			, popup_css: ""
+		}
+
+		for (var key in defaults) {
+			config[key] = config[key] == null ? defaults[key] : config[key];
 		}
 	}
 
-	return false;
-}
-
-async function migrateSettings() {
 	let config = await browser.storage.local.get();
-	let manifest = browser.runtime.getManifest();
+	let manifest = await browser.runtime.getManifest();
 
 	if (config.version == null) {
+		setDefaults(config);
 		config.firstInstall = manifest.version;
 		config.version = manifest.version;
 	}
@@ -29,7 +50,7 @@ async function migrateSettings() {
 		}
 	}
 
-	if (isVersionOlderThan(config.version, "0.15.0")) {
+	if (olderVersion(config.version, "0.15.0")) {
 		if (config.rules == null) {
 			config.rules = [];
 		}
@@ -49,11 +70,8 @@ async function migrateSettings() {
 		}
 	}
 
-	// Make light theme default
-	if (!isVersionOlderThan(config.firstInstall, manifest.version)) {
-		if (config.light_theme === undefined) {
-			config.light_theme = true;
-		}
+	if (olderVersion(config.version, "1.0.0")) {
+		setDefaults(config);
 	}
 
 	config.version = manifest.version;
