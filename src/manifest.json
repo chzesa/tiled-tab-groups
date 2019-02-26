@@ -2,7 +2,7 @@
 	"manifest_version": 2
 	, "name": "Tiled Tab Groups"
 	, "description": "Tiled tab groups. Based on Totally not Panorama 0.0.10"
-	, "version": "0.15.13"
+	, "version": "0.16.0"
 	, "icons": {
 		"16": "icons/logo/logo-16.png"
 		, "32": "icons/logo/logo-32.png"
@@ -36,7 +36,9 @@
 
 	"background": {
 		"scripts": [
-			"js/groups.js", "js/tabs.js", "js/const.js"
+			"external/js-syncqueue/src.js", "js/const.js"
+			, "js/menu.js"
+			, "js/tabInterface.js", "js/groupInterface.js"
 			, "js/tabCatch.js", "js/migrate.js"
 			, "js/bgViews.js", "js/background.js"
 		]

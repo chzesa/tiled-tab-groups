@@ -10,7 +10,7 @@ function tabDragStart(e) {
 		return;
 	}
 
-	if (this.parentNode == groupNodes.pinned.content) {
+	if (this.parentNode == pinned.content) {
 		e.preventDefault();
 		return;
 	}
@@ -81,84 +81,67 @@ function tabDragOver(e) {
 	return false;
 }
 
-async function tabDrop(e) {
+async function moveSelectionToIndex(selection, index) {
+	try {
+		await browser.tabs.move(selection, {
+			index
+		});
+	}
+	catch (e) {
+		var offset = 0;
+		let n = selection.length;
+		for (var i = 0; i < n; i++) {
+			try {
+
+				await browser.tabs.move(selection[i], {
+					index: index + offset
+				});
+				offset++;
+			}
+			catch (e) {}
+		}
+	}
+}
+
+function tabDrop(e) {
 	e.stopPropagation();
 
-	if (dragTab !== dragOverTab && !dragOverTab.classList.contains('selection')) {
-
-		if (this.parentNode == groupNodes.pinned.content) {
-			e.preventDefault();
-			return;
-		}
-
-		dropSelectedNodesToGroup();
-
-		var toTabId = Number(dragOverTab.getAttribute('tabId'));
-		var groupId = await tabs.getGroupId(toTabId);
-
-		var tabId = Number(dragTab.getAttribute('tabId'));
-
-		var tab = await browser.tabs.get(tabId);
-		var toTab = await browser.tabs.get(toTabId);
-
-		var toIndex = Number(toTab.index);
-
-		if (tab.index < toTab.index) {
-			if (dragDropBefore) {
-				toIndex--;
-			}
-		}
-		else {
-			if (!dragDropBefore) {
-				toIndex++;
-			}
-		}
-
-		moveTabsToGroup(Selected.get(), groupId, toIndex);
+	if (dragTab == dragOverTab || dragOverTab.classList.contains('selection')) {
+		return;
 	}
 
-	return false;
-}
+	if (this.parentNode == pinned.content) {
+		e.preventDefault();
+		return;
+	}
 
-async function dropSelectedNodesToGroup() {
-	let frag = document.createDocumentFragment();
+	var toTabId = Number(dragOverTab.getAttribute('tabId'));
+	let groupId = TABINTERFACE.getGroupId(toTabId);
 
-	Selected.get().forEach(id => {
-		frag.appendChild(tabNodes[`${id}`].tab);
-	});
+	var tabId = Number(dragTab.getAttribute('tabId'));
+	let tab = TABINTERFACE.get(tabId);
+	let toTab = TABINTERFACE.get(toTabId);
 
-	let parent = dragOverTab.parentNode;
-	for (let i = 0; i < parent.children.length; i++) {
-		if (dragOverTab == parent.children[i]) {
-			let insertAt = dragDropBefore ? i : i + 1;
-			setAsNthChild(frag, parent, insertAt);
-			break;
+	var toIndex = toTab.index;
+
+	if (tab.index < toIndex) {
+		if (dragDropBefore) {
+			toIndex--;
+		}
+	}
+	else {
+		if (!dragDropBefore) {
+			toIndex++;
 		}
 	}
 
-	groups.forEach(function (group) {
-		// updateTabCount(group);
-		markGroupRecount(group.id);
-	});
-}
-
-async function moveTabsToGroup(pTabIdArray, pGroupId, pIndex) {
+	let selection = Selected.get();
 	Selected.clear();
-	pTabIdArray.forEach(id => {
-		tabs.setGroupId(id, pGroupId);
-	});
-	tabs.toggleAll();
 
-	browser.tabs.onMoved.removeListener(tabMoved);
-
-	await browser.tabs.move(pTabIdArray, {
-		index: pIndex
-	});
-
-	browser.tabs.onMoved.addListener(tabMoved);
-
-	pTabIdArray.forEach(id => {
-		updateIndent(id);
+	bgPage.enqueueTask(async function () {
+		await TABINTERFACE.setGroupId(selection, groupId);
+		await reorderGroup(groupId);
+		await moveSelectionToIndex(selection, toIndex);
 	});
 }
 
@@ -170,43 +153,33 @@ function groupDragOver(e) {
 	return false;
 }
 
-async function putTabInGroup(groupId) {
-	let frag = document.createDocumentFragment();
-
-	Selected.get().forEach(id => {
-		frag.appendChild(tabNodes[`${id}`].tab);
-	});
-
-	groups.forEach(function (group) {
-		// updateTabCount(group);
-		markGroupRecount(group.id);
-	});
-
-	setAsNthChild(frag, groupNodes[groupId].content, Number(groupNodes[groupId].tabCount.innerHTML));
-
-	moveTabsToGroup(Selected.get(), groupId, -1);
-}
-
-async function groupDrop(e) {
+function groupDrop(e) {
 	e.stopPropagation();
-
 	var groupId = Number(this.getAttribute('groupId'));
 
-	putTabInGroup(groupId);
+	bgPage.enqueueTask(async function () {
+		let selection = Selected.get();
+		Selected.clear();
+		await TABINTERFACE.setGroupId(selection, groupId);
+		await reorderGroup(groupId);
+		await bgPage.tryBrowserArrayOperation(selection
+			, browser.tabs.move, -1);
+	});
 
 	return false;
 }
 
-async function outsideDrop(e) {
+function outsideDrop(e) {
 	e.stopPropagation();
 
-	const group = await groups.create();
-
-	makeGroupNode(group);
-
-	view.groupsNode.appendChild(groupNodes[group.id].group);
-
-	putTabInGroup(group.id);
+	bgPage.enqueueTask(async function () {
+		let selection = Selected.get();
+		Selected.clear();
+		let group = await GRPINTERFACE.new();
+		await onGroupCreated(group.id);
+		await TABINTERFACE.setGroupId(selection, group.id);
+		await reorderGroup(group.id);
+	});
 
 	return false;
 }

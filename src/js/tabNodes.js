@@ -1,21 +1,20 @@
 'use strict';
 
 const tabNodes = {};
-var tab_node_pool_anchor;
 const tab_node_pool = [];
+var tab_node_pool_anchor;
+var last_active_node;
+var updateIndent;
 
-async function initTabNodes() {
-	tab_node_pool_anchor = document.getElementById('tab-pool');
-	await tabs.forEach(async function (tab) {
-		await makeTabNode(tab);
-	});
-}
+function makeTabNode(tab) {
+	let tab_object = tabNodes[tab.id];
+	if (tab_object != null) {
+		return tab_object;
+	}
 
-async function makeTabNode(tab) {
-	let tab_object;
+	tab_object = tab_node_pool.pop();
 
-	if (tab_node_pool.length > 0) {
-		tab_object = tab_node_pool.pop();
+	if (tab_object != null) {
 		tab_object.id = tab.id;
 		tab_object.tab.setAttribute('tabId', tab.id);
 	}
@@ -91,94 +90,59 @@ async function makeTabNode(tab) {
 	}
 
 	tabNodes[tab.id] = tab_object;
-
-	updateTabNode(tab);
-	updateFavicon(tab);
+	return tab_object;
 }
 
-async function updateTabNode(tab) {
-	var node = tabNodes[tab.id];
+function deleteTabNode(tabId) {
+	let tab_object = tabNodes[tabId];
+	if (tab_object == null) return;
 
-	if (node) {
+	delete tabNodes[tabId];
+	tab_object.tab.removeAttribute('tabId');
+	tab_object.id = -1;
+	tab_node_pool_anchor.appendChild(tab_object.tab);
+	tab_node_pool.push(tab_object);
+	Selected.removeSelectable(tabId);
+}
+
+function partialUpdate(tab, info) {
+	let node = tabNodes[tab.id];
+	if (node == null) return;
+
+	if (info.title != null) {
 		node.name.innerHTML = '';
 		node.name.appendChild(document.createTextNode(tab.title));
+	}
 
-		node.title = `${tab.title} - ${tab.url}`;
+	if (info.favIconUrl != null) {
+		if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage)
+		node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
+		else
+		node.favicon.style.backgroundImage = '';
+		return;
+	}
 
+	if (info.discarded != null) {
 		setNodeClass(node.tab, 'inactive', tab.discarded);
 	}
 }
 
-async function updateIndent(pTabId) {
-	if (use_tst_indent) {
-		let node = tabNodes[pTabId];
-		if (!node) return;
+function updateTabNode(tab) {
+	let node = tabNodes[tab.id];
+	if (node == null) return;
 
-		setTimeout(async function () {
-			try {
-				let depth = await getTreeStyleTabIndent(pTabId);
-				node.tab.style.marginLeft = `${depth * 8}px`;
-			}
-			catch (e) {
-				console.log(e);
-			}
-		}, 500);
-	}
-	else if (use_ftt) {
-		let node = tabNodes[pTabId];
-		if (!node) return;
-		let depth = 0;
-		try {
-			depth = await getFttIndent(pTabId);
-		}
-		catch (e) {
-			console.log(e);
-		}
+	node.name.innerHTML = '';
+	node.name.appendChild(document.createTextNode(tab.title));
 
-		node.tab.style.marginLeft = `${depth * 8}px`;
-	}
+	setNodeClass(node.tab, 'inactive', tab.discarded);
+
+	if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage)
+	node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
+	else
+	node.favicon.style.backgroundImage = '';
+	return;
 }
 
-async function getFttIndent(tabId) {
-	let depth = 0;
-	try {
-		var nfo = await browser.runtime.sendMessage("{8d808887-ed13-4931-9f5a-4c0bff979a5a}", {
-			tab: tabId
-		});
-		depth = nfo.parents.length || 0;
-	}
-	catch (e) {}
-
-	if (depth > 0 && await tabs.getGroupId(tabId) != await tabs.getGroupId(nfo.parents[0])) {
-		depth = 0;
-	}
-
-	return depth;
-}
-
-async function getTreeStyleTabIndent(pTabId) {
-	let depth;
-	try {
-		const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
-		var tst_info = await browser.runtime.sendMessage(kTST_ID, {
-			type: 'get-tree'
-			, tab: pTabId
-		});
-
-		depth = tst_info.ancestorTabIds.length || 0;
-	}
-	catch (e) {
-		return 0;
-	}
-
-	if (depth > 0 && await tabs.getGroupId(pTabId) != await tabs.getGroupId(tst_info.ancestorTabIds[0])) {
-		depth = 0;
-	}
-
-	return depth;
-}
-
-var last_active_node;
 async function setActiveTabNode() {
 	if (last_active_node != null) {
 		last_active_node.classList.remove('selected');
@@ -191,7 +155,7 @@ async function setActiveTabNode() {
 
 	let id;
 
-	if (activeTab.id == view.tabId) {
+	if (activeTab.id == TAB_ID) {
 		let tabs = await browser.tabs.query({
 			hidden: false
 			, currentWindow: true
@@ -200,9 +164,9 @@ async function setActiveTabNode() {
 		let lastAccessed = 0;
 		id = -1;
 
-		for (let i in tabs) {
-			let tab = tabs[i];
-			if (tab.lastAccessed > lastAccessed && tab.id != view.tabId) {
+		for (var i in tabs) {
+			var tab = tabs[i];
+			if (tab.lastAccessed > lastAccessed && tab.id != TAB_ID) {
 				lastAccessed = tab.lastAccessed;
 				id = tab.id;
 			}
@@ -219,25 +183,59 @@ async function setActiveTabNode() {
 	last_active_node.classList.add('selected');
 }
 
-function deleteTabNode(tabId) {
-	if (tabNodes[tabId] != null) {
-		let tab_object = tabNodes[tabId];
-		delete tabNodes[tabId];
-		tab_object.tab.removeAttribute('tabId');
-		tab_object.id = -1;
-		tab_node_pool_anchor.appendChild(tab_object.tab);
-		tab_node_pool.push(tab_object);
-		Selected.removeSelectable(tabId);
+async function updateIndentFtt(tabId) {
+	let node = tabNodes[tabId];
+	if (node == null) return;
+	let depth = 0;
+	try {
+		var info = await browser.runtime.sendMessage("{8d808887-ed13-4931-9f5a-4c0bff979a5a}", {
+			tab: tabId
+		});
+		depth = info.parents.length || 0;
+	}
+	catch (e) {
+
+	}
+
+	if (depth > 0 &&
+		TABINTERFACE.getGroupId(tabId) != TABINTERFACE.getGroupId(info.parents[0])) {
+		depth = 0;
+	}
+
+	node = tabNodes[tabId];
+	if (node != null) {
+		node.tab.style.marginLeft = `${depth * 8}px`;
 	}
 }
 
-async function updateFavicon(tab) {
-	var node = tabNodes[tab.id];
+async function updateIndentTst(tabId) {
+	let node = tabNodes[tabId];
+	if (node == null) return;
 
-	if (node) {
-		if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage)
-		node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
-		else
-		node.favicon.style.backgroundImage = '';
+	let depth = 0;
+
+	setTimeout(async function () {
+		try {
+			const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
+			var info = await browser.runtime.sendMessage(kTST_ID, {
+				type: 'get-tree'
+				, tab: tabId
+			});
+
+			depth = info.ancestorTabIds.length || 0;
+		}
+		catch (e) {
+			console.log(e);
+		}
+	}, 500);
+
+	if (depth > 0 &&
+		TABINTERFACE.getGroupId(tabId) != TABINTERFACE.getGroupId(info.ancestorTabIds[0])) {
+		depth = 0;
+	}
+
+	node = tabNodes[tabId];
+	if (node != null) {
+		node.tab.style.marginLeft = `${depth * 8}px`;
 	}
 }

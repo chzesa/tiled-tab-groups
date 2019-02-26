@@ -20,7 +20,6 @@ async function migrateSettings() {
 			, rules: []
 			, regex_nextId: 0
 			, use_tst_indent: false
-			, use_tst_context: false
 			, use_tst_tree_close: false
 			, ftt: false
 			, use_panel_numkey: false
@@ -68,6 +67,10 @@ async function migrateSettings() {
 				config.rules[i].lastEdit = 1;
 			}
 		}
+	}
+
+	if (olderVersion(config.version, "0.16.0")) {
+		delete config[use_tst_context];
 	}
 
 	if (olderVersion(config.version, "1.0.0")) {

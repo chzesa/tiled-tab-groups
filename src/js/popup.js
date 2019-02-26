@@ -7,7 +7,15 @@ let stashTitle;
 let numKeyEnabled = false;
 var numKeyTargets = [];
 
+let WINDOW_ID;
+let bgPage;
+let TABINTERFACE;
+
 async function init() {
+	bgPage = browser.extension.getBackgroundPage();
+	WINDOW_ID = (await browser.windows.getCurrent()).id;
+	TABINTERFACE = await bgPage.registerPopup();
+
 	let promises = [
 		browser.storage.local.get().then(v => {
 			numKeyEnabled = v.use_panel_numkey || false;
@@ -33,13 +41,23 @@ async function init() {
 
 	settings.addEventListener('click', function (event) {
 		event.stopPropagation();
-		commsOpenView();
+		let view = bgPage.getView(WINDOW_ID);
+		if (view != null) {
+			try {
+				browser.tabs.update(view.tabId, {
+					active: true
+				})
+			}
+			catch (e) {
+				console.log(e);
+			}
+		}
 		window.close();
 	});
 
 	reinit.addEventListener('click', function (event) {
 		event.stopPropagation();
-		commsReinit();
+		// commsReinit();
 		window.close();
 	});
 
@@ -52,7 +70,10 @@ async function init() {
 			return;
 		}
 
-		commsSwitchToGroup(numKeyTargets[num]);
+		bgPage.enqueueTask(async function () {
+			await bgPage.switchToGroup(WINDOW_ID, numKeyTargets[num]);
+		});
+
 		window.close();
 	});
 
@@ -62,23 +83,22 @@ async function init() {
 	stashHolder = document.getElementById('stash');
 	stashTitle = document.getElementById('stash-title');
 
-	// await makeGroupNodes();
 	updateGroupNodes();
 	updateActive();
 }
 
-async function updateActive() {
-	let activeId = await groups.getActive();
+function updateActive() {
+	let activeId = TABINTERFACE.getActiveGroupId(WINDOW_ID);
 
-	nodes.forEach(node => {
+	nodes.forEach(function (node) {
 		setNodeClass(node.text, 'active', node.id == activeId);
-	})
+	});
 }
 
 async function makeGroupNodes() {
-	await groups.init();
+	let grpIfc = TABINTERFACE.getGroupInterface(WINDOW_ID);
 
-	groups.forEach(function (group) {
+	await grpIfc.forEach(function (group) {
 		let text = new_element('div', {
 			class: 'name'
 			, content: group.name
@@ -95,7 +115,7 @@ async function makeGroupNodes() {
 
 		unstash.addEventListener('click', async function (event) {
 			event.stopPropagation();
-			commsStashGroup(group.id, false);
+			bgPage.setStash(WINDOW_ID, group.id, false);
 			nodes[group.id].stash = false;
 			updateGroupNodes();
 		});
@@ -105,7 +125,9 @@ async function makeGroupNodes() {
 			if (group.stash) {
 				return;
 			}
-			commsSwitchToGroup(group.id);
+			bgPage.enqueueTask(async function () {
+				await bgPage.switchToGroup(WINDOW_ID, group.id);
+			});
 			window.close();
 		});
 
@@ -122,22 +144,19 @@ async function makeGroupNodes() {
 	});
 }
 
-async function updateGroupNodes() {
+function updateGroupNodes() {
 	numKeyTargets = [];
 	numKeyTargets[0] = "-1";
 
-	nodes.forEach(node => {
+	nodes.forEach(function (node) {
 		if (node.stash) {
 			stashHolder.appendChild(node.html);
 		}
 		else {
-			if (numKeyEnabled) {
-				if (numKeyTargets.length < 10) {
-					let i = (numKeyTargets.length) % 10;
-					numKeyTargets[i] = node.id;
-					node.text.innerHTML = `[${i}] ${node.name}`;
-
-				}
+			if (numKeyEnabled && numKeyTargets.length < 10) {
+				let i = (numKeyTargets.length % 10);
+				numKeyTargets[i] = node.id;
+				node.text.innerHTML = `[${i}] ${node.name}`;
 			}
 
 

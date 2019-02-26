@@ -1,527 +1,329 @@
 'use strict';
 
-async function tabCreated(tab) {
-	if (!openingView) {
+var TABINTERFACE;
+var QUEUE;
+var BROWSERQUEUE;
 
-		var tabGroupId = await browser.sessions.getTabValue(tab.id, 'groupId');
-
-		if (tabGroupId === undefined) {
-
-			var activeGroup = undefined;
-
-			while (activeGroup === undefined) {
-				activeGroup = (await browser.sessions.getWindowValue(tab.windowId, 'activeGroup'));
-			}
-
-			tabs.setGroupId(tab.id, activeGroup);
-		}
-	}
-	else {
-		openingView = false;
-		tabs.setGroupId(tab.id, -1);
-		panoramaTabs[tab.windowId] = tab.id;
-		removePanoramaViewTabs();
-	}
-}
-
-async function setupWindows() {
-	const windows = browser.windows.getAll({});
-
-	for (const window of await windows) {
-
-		var groups = await browser.sessions.getWindowValue(window.id, 'groups');
-
-		if (groups === undefined) {
-			createGroupInWindow(window);
-		}
-	}
-}
-
-async function newGroupUid(windowId) {
-	var groupIndex = (await browser.sessions.getWindowValue(windowId, 'groupIndex'));
-
-	var uid = groupIndex || 0;
-	var newGroupIndex = uid + 1;
-
-	await browser.sessions.setWindowValue(windowId, 'groupIndex', newGroupIndex);
-
-	return uid;
-}
-
-async function createGroupInWindow(window) {
-	var groupId = await newGroupUid(window.id);
-
-	var groups = [{
-		id: groupId
-		, name: `Group ${groupId}`
-		, containerId: 'firefox-default'
-		, tabCount: 0, // stash: false,
-	}];
-
-	browser.sessions.setWindowValue(window.id, 'groups', groups);
-	browser.sessions.setWindowValue(window.id, 'activeGroup', groupId);
-
-	const winTabs = browser.tabs.query({
-		windowId: window.id
+async function removePanoramaViewTabs() {
+	let tabs = await browser.tabs.query({
+		url: browser.extension.getURL('view.html')
 	});
 
-	for (const tab of await winTabs) {
-		tabs.setGroupId(tab.id, groupId);
-	}
-}
+	let n = tabs.length;
 
-async function salvageGrouplessTabs() {
-	let windows = {};
-	const _windows = await browser.windows.getAll({});
+	let promises = [];
 
-	for (const w of _windows) {
-		windows[w.id] = {
-			groups: null
-		};
-		windows[w.id].groups = await browser.sessions.getWindowValue(w.id, 'groups');
-	}
+	for (var i = 0; i < n; i++) {
+		let tab = tabs[i];
 
-	const browser_tabs = browser.tabs.query({});
-
-	let salvagedGroups = {};
-
-	for (const tab of await browser_tabs) {
-		let groupId = await browser.sessions.getTabValue(tab.id, 'groupId');
-
-		if (groupId === undefined || groupId < 0) {
-			let activeGroup = await browser.sessions.getWindowValue(tab.windowId, 'activeGroup');
-			tabs.setGroupId(tab.id, activeGroup);
-		}
-		else {
-			let groupExists = false;
-			for (const group of windows[tab.windowId].groups) {
-				if (group.id == groupId) {
-					groupExists = true;
-					break;
-				}
-			}
-			if (tab.pinned) {
-				let activeGroup = await browser.sessions.getWindowValue(tab.windowId, 'activeGroup');
-				tabs.setGroupId(tab.id, activeGroup);
-			}
-			else if (!groupExists) {
-				if (salvagedGroups[groupId] === undefined) {
-					let sGrp = await groups.create();
-					sGrp.name = sGrp.name + " (Salvaged)";
-					salvagedGroups[groupId] = sGrp.id;
-				}
-
-				tabs.setGroupId(tab.id, salvagedGroups[groupId]);
-			}
-		}
-	}
-}
-
-const contextMenuIds = [];
-
-const menuGroupState = {
-	active: 0
-	, deleted: 1
-};
-
-async function updateContextMenu() {
-	await groups.init();
-	for (let i in contextMenuIds) {
-		contextMenuIds[i] = menuGroupState.deleted;
-	}
-
-	groups.forEach(group => {
-		let id = group.id;
-		if (contextMenuIds[id] == null) {
-			createContextMenuItem(group);
-		}
-		else {
-			contextMenuIds[id] = menuGroupState.active;
-			let params = [`${id}`, {
-				title: `${group.name}`
-			}];
-			browser.menus.update(...params);
-			updateTSTContextMenuItem(params);
-		}
-
-	});
-
-	for (let i in contextMenuIds) {
-		if (contextMenuIds[i] == menuGroupState.deleted) {
-			browser.menus.remove(i);
-			removeTSTContextMenuItem(i);
-		}
-	}
-}
-
-var use_tst_context = false;
-
-async function createContextMenuItem(group) {
-	let id = group.id;
-	contextMenuIds[id] = menuGroupState.active;
-
-	let params = {
-		id: `${id}`
-		, title: `${group.name}`
-		, parentId: "root"
-	};
-
-	browser.menus.create(params);
-	createTSTContextMenuItem(params);
-}
-
-// https://github.com/piroor/treestyletab/wiki/API-for-other-addons#extra-context-menu-items-on-tabs
-const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
-
-async function updateTSTContextMenuItem(params) {
-	await tstContextMenuComms('fake-contextMenu-update', params);
-}
-
-async function createTSTContextMenuItem(params) {
-	await tstContextMenuComms('fake-contextMenu-create', params);
-}
-
-async function removeTSTContextMenuItem(params) {
-	await tstContextMenuComms('fake-contextMenu-remove', params);
-}
-
-async function tstContextMenuComms(type, params) {
-	if (!use_tst_context) {
-		return;
-	}
-
-	await browser.runtime.sendMessage(kTST_ID, {
-		type
-		, params
-	}).catch(error => { /* TST is not available */ });;
-}
-
-// https://github.com/piroor/treestyletab/wiki/API-for-other-addons#register-and-unregister-your-addon-to-tst
-async function registerTST() {
-	if (!use_tst_context) {
-		return;
-	}
-	await browser.runtime.sendMessage(kTST_ID, {
-		type: 'register-self'
-		, icons: browser.runtime.getManifest().icons
-		, listeningTypes: ['tab-mousedown']
-	, }).catch(e => {});
-}
-
-async function tabContextMenuAction(pInfo, pTab) {
-	await tabs.setGroupIdUpdate(pTab.id, pInfo.menuItemId);
-
-	sendMessageToView(pTab.windowId, CONTENT_MSG_TAB_MOVED, {
-		id: pTab.id
-	});
-
-	if (pTab.active && pTab.windowId == (await browser.windows.getCurrent()).id) {
-		groups.setActive(await tabs.getGroupId(pTab.id));
-	}
-}
-
-async function panoramaContextMenuAction(pInfo, pTab) {
-	let currentWindowId = (await browser.windows.getCurrent()).id;
-
-	let selected = await browser.tabs.sendMessage(panoramaTabs[currentWindowId], {
-		message: CONTENT_MSG_GET_SELECTION
-	});
-
-	switch (pInfo.menuItemId) {
-	case 'reload':
-		selected.forEach(id => {
-			browser.tabs.reload(id);
-		})
-		break;
-
-	case 'unload':
-		browser.tabs.discard(selected);
-		break;
-
-	case 'close':
-		browser.tabs.remove(selected);
-		sendMessageToView(pTab.windowId, CONTENT_MSG_CLEAR_SELECTION);
-		break;
-	}
-}
-
-async function createPanoramaContextMenu() {
-	const table = {
-		reload: 'Reload Selection'
-		, unload: 'Unload Selection'
-		, close: 'Close Selection'
-	};
-
-	for (let k in table) {
-		let entry = {
-			id: k
-			, title: table[k]
-			, parentId: "panoramaRoot"
-		}
-
-		await browser.menus.create(entry);
-	}
-}
-
-async function initContextMenu() {
-	await browser.storage.local.get().then(function (v) {
-		use_tst_context = v.use_tst_context || false;
-	});
-
-	let tabContextRoot = {
-		id: "root"
-		, title: "Move tab to group"
-		, contexts: ["tab"]
-	};
-
-	let panoramaContextRoot = {
-		id: "panoramaRoot"
-		, title: "Selection"
-		, contexts: ["page"]
-		, documentUrlPatterns: [browser.runtime.getURL('view.html')]
-	}
-
-	await registerTST();
-	await createTSTContextMenuItem(tabContextRoot);
-	await browser.menus.create(tabContextRoot);
-	await browser.menus.create(panoramaContextRoot);
-	createPanoramaContextMenu();
-	updateContextMenu();
-
-	browser.menus.onShown.addListener(async (pInfo, pTab) => {
-		if (pInfo.contexts.includes('tab')) {
-			await updateContextMenu();
-			browser.menus.refresh();
-		}
-	});
-
-	browser.menus.onClicked.addListener(async (pInfo, pTab) => {
-		switch (pInfo.parentMenuItemId) {
-		case "root":
-			tabContextMenuAction(pInfo, pTab);
-			break;
-
-		case "panoramaRoot":
-			panoramaContextMenuAction(pInfo, pTab);
-			break;
-		}
-	});
-
-	if (!use_tst_context) {
-		return;
-	}
-
-	// https://github.com/piroor/treestyletab/wiki/API-for-other-addons#handle-click-event-on-menu-item
-	browser.runtime.onMessageExternal.addListener((aMessage, aSender) => {
-		switch (aSender.id) {
-		case kTST_ID:
-			switch (aMessage.type) {
-			case 'fake-contextMenu-click':
-				tabContextMenuAction(aMessage.info, aMessage.tab);
+		let b = false;
+		for (let key in panoramaTabs) {
+			if (panoramaTabs[key] == tab.id) {
+				b = true;
 				break;
 			}
-			break;
 		}
-	});
-}
-
-async function cycleGroup(dir) {
-	await groups.init();
-	let activeId = await groups.getActive();
-
-	let nextGroup = groups.getNext(activeId, dir);
-
-	while (nextGroup.stash == true) {
-		if (nextGroup.id == activeId) {
-			break;
+		if (!b) {
+			promises.push(browser.tabs.remove(tab.id));
 		}
-		nextGroup = groups.getNext(nextGroup.id, dir);
 	}
 
-	switchToGroup(nextGroup.id);
+	await Promise.all(promises);
 }
 
-async function switchToGroup(groupId) {
-	browser.tabs.query({
-		currentWindow: true
-	}).then(async function (result) {
-		let arr = await Promise.all(result.map(async tab =>
-			[tab.id, await tabs.getGroupId(tab.id)]
-		));
+async function groupOrphans() {
+	let windows = {};
+	let salvageGroups = {};
 
-		let comp = [];
+	await TABINTERFACE.forEachWindow(async function (windowId) {
+		windows[windowId] = TABINTERFACE.getGroupInterface(windowId);
+		salvageGroups[windowId] = {};
+	});
 
-		for (let i = 0; i < arr.length; i++) {
-			comp[arr[i][0]] = arr[i][1];
-		}
+	await TABINTERFACE.forEach(async function (tab) {
+		let groupId = tab.groupId;
+		let windowId = tab.windowId;
 
-		let tab = result.filter(function (tab) {
-			return comp[tab.id] == groupId;
-		}).sort(function (a, b) {
-			return a.lastAccessed - b.lastAccessed;
-		}).pop();
-
-		if (tab == null || tab == []) {
-			// Tab OnCreated listener conflicts with this if this was to be done in a way that doesn't rely on function execution time
-			groups.setActive(groupId);
-			browser.tabs.create({
-				active: true
-			});
+		if (groupId == null || groupId < 0) {
+			console.log(`Found tab with groupId ${groupId}`);
+			await TABINTERFACE.setGroupId(tab.id
+				, TABINTERFACE.getActiveGroupId(windowId));
 		}
 		else {
-			browser.tabs.update(tab.id, {
-				active: true
-			}).then(_ => {
-				groups.setActive(groupId);
-			})
-		}
-	});
-}
-
-async function unloadGroup(groupId) {
-	tabs.forEach(async function (tab) {
-		if (tab.pinned) {
-			return;
-		}
-
-		if (await tabs.getGroupId(tab.id) == groupId) {
-			browser.tabs.discard(tab.id);
-		}
-	});
-}
-
-async function reloadGroup(groupId) {
-	await tabs.forEach(async function (tab) {
-		if (tab.pinned) {
-			return;
-		}
-
-		if (await tabs.getGroupId(tab.id) == groupId) {
-			browser.tabs.reload(tab.id);
-		}
-	});
-}
-
-async function deleteGroup(groupId) {
-	let collectPinnedTabsTo = await groups.getByIndex(0);
-	groups.remove(groupId);
-
-	tabs.forEach(async function (tab) {
-		let tabId = await tabs.getGroupId(tab.id);
-		if (tabId === undefined) {
-			console.log(`Tab ${tab.id} had no group id`);
-			return;
-		}
-
-		if (tab.pinned) {
-			tabs.setGroupId(tab.id, collectPinnedTabsTo.id);
-			return;
-		}
-
-		if (tabId == groupId) {
-			browser.tabs.remove(tab.id);
-		}
-	});
-
-
-	switchToActiveOrCurrent(groupId);
-}
-
-async function switchToActiveOrCurrent(groupId) {
-	let activeId = await groups.getActive();
-
-	if (activeId == groupId) {
-		let first = true;
-
-		groups.forEach(function (group) {
-			if (first && group.stash == false) {
-				first = false;
-				groups.setActive(group.id);
-				// switchToGroup(group.id);
+			if (windows[windowId].get(groupId) != null) {
+				return;
 			}
-		});
+
+			if (Number.isInteger(groupId) == false) {
+				console.log(`tab ${tab.id} (${tab.url}) had a non-integer group id: ${groupId}`);
+				console.log(groupId);
+			}
+
+			console.log(`Found tab with groupId ${groupId}`);
+
+			if (salvageGroups[windowId][groupId] == null) {
+				salvageGroups[windowId][groupId] = windows[windowId].new();
+			}
+
+			await TABINTERFACE.setGroupId(tab.id
+				, (await salvageGroups[windowId][groupId]).id
+			);
+		}
+	});
+
+	for (var win in salvageGroups) {
+		for (var id in salvageGroups[win]) {
+			let group = await salvageGroups[win][id];
+			windows[win].rename(group.id, `${group.name} (Salvaged)`);
+		}
 	}
 }
 
-async function sendMessageToView(win, msg, options) {
-	try {
-		browser.tabs.sendMessage(panoramaTabs[win], {
-			message: msg
-			, options: options
+async function mostRecentInGroup(windowId, groupId = null) {
+	let ret = [];
+
+	await TABINTERFACE.forEach(function (tab) {
+		ret.push(tab);
+	}, windowId, groupId);
+
+	ret = ret.sort(function (a, b) {
+		return b.lastAccessed - a.lastAccessed;
+	});
+
+	return ret;
+}
+
+async function cycleGroup(offset) {
+	let windowId = (await browser.windows.getCurrent()).id;
+	let grpIfc = await TABINTERFACE.getGroupInterface(windowId);
+	let activeId = await TABINTERFACE.getActiveGroupId(windowId);
+	let group = grpIfc.get(activeId);
+	let originalGroupId = group.id;
+
+	do {
+		group = grpIfc.getByIndex(group.index + offset);
+		if (group.id == originalGroupId) {
+			break;
+		}
+	} while (group.stash);
+
+	await switchToGroup(windowId, group.id);
+}
+
+async function switchToGroup(windowId, groupId) {
+	let array = await mostRecentInGroup(windowId, groupId);
+	let ok = false;
+	let n = array.length;
+
+	if (n == 0) {
+		await TABINTERFACE.setActiveGroup(windowId, groupId);
+		browser.tabs.create({
+			active: true
 		});
+		return;
 	}
-	catch (e) {}
+
+	var i = 0;
+	while (ok == false && i < n) {
+		try {
+			var tabId = array[i++].id;
+			if (panoramaTabs[windowId] != null &&
+				tabId == panoramaTabs[windowId].tabId) {
+				continue;
+			}
+
+			await browser.tabs.update(tabId, {
+				active: true
+			});
+
+			ok = true;
+		}
+		catch (e) {
+
+		}
+	}
+}
+
+async function tryBrowserArrayOperation(array, op, ...param) {
+	try {
+		await op(array);
+	}
+	catch (e) {
+		console.log(e);
+		console.log(`Error in bulk operation, resubmitting individually.`);
+
+		let n = array.length;
+		for (var i = 0; i < n; i++) {
+			try {
+				await op(array[i], ...param);
+			}
+			catch (e) {
+
+			}
+		}
+	}
+}
+
+async function unloadGroup(windowId, groupId) {
+	QUEUE.do(null, async function () {
+		let array = [];
+
+		await TABINTERFACE.forEach(function (tab) {
+			if (tab.pinned) return;
+			array.push(tab.id);
+
+		}, windowId, groupId);
+
+		tryBrowserArrayOperation(array, browser.tabs.discard);
+	});
+}
+
+async function alternativeGroup(windowId, groupId) {
+	let grpIfc = TABINTERFACE.getGroupInterface(windowId);
+	let group = grpIfc.getByIndex(0);
+	let i = 1;
+
+	let candidate;
+	let stashCandidate;
+
+	while (group != null) {
+		if (group.id == groupId) {
+			continue;
+		}
+
+		if (!group.stash) {
+			candidate = group;
+			break;
+		}
+		else {
+			stashCandidate = group;
+		}
+
+		group = grpIfc.getByIndex(i);
+		i++;
+	}
+
+	if (candidate == null && stashCandidate == null) {
+		return null;
+	}
+
+	if (candidate != null) {
+		await TABINTERFACE.setActiveGroup(windowId, candidate.id);
+		return candidate;
+	}
+	else {
+		await setStash(windowId, collectId, false, true);
+		await TABINTERFACE.setActiveGroup(windowId, stashCandidate.id);
+		return stashCandidate;
+	}
+}
+
+function deleteGroup(windowId, groupId) {
+	QUEUE.do(null, async function () {
+		let grpIfc = TABINTERFACE.getGroupInterface(windowId);
+		if (grpIfc.get(groupId) == null) {
+			return;
+		}
+
+		let collectId = TABINTERFACE.getActiveGroupId(windowId);
+
+		// If the group is the current active group, find an alternative
+		// group to activate.
+		if (groupId == collectId) {
+			let group = await alternativeGroup(windowId, groupId);
+			if (group == null) {
+				console.log(`Cannot remove the last group in a window.`);
+				return;
+			}
+
+			collectId = group.id;
+		}
+
+		let close = [];
+		let regroup = [];
+
+		await TABINTERFACE.forEach(function (tab) {
+			if (tab.pinned) {
+				regroup.push(tab.id);
+			}
+			else {
+				close.push(tab.id);
+			}
+		}, windowId, groupId);
+
+		let n = regroup.length;
+		for (var i = 0; i < n; i++) {
+			await TABINTERFACE.setGroupId(regroup[i].id, collectId);
+		}
+
+		await TABINTERFACE.setActiveGroup(windowId, collectId);
+		await tryBrowserArrayOperation(close, browser.tabs.remove);
+		await grpIfc.remove(groupId);
+
+		let view = panoramaTabs[windowId];
+		if (view != null) {
+			await view.onGroupRemoved(groupId);
+		}
+	});
+}
+
+async function setStash(windowId, groupId, state, now = false) {
+	async function set() {
+		let grpIfc = TABINTERFACE.getGroupInterface(windowId);
+		if (grpIfc.get(groupId).stash == state) {
+			return;
+		}
+
+		// If current group is being stashed, find alternative.
+		// If current group is the only group in window do nothing.
+		if (state && TABINTERFACE.getActiveGroupId(windowId) == groupId) {
+			let group = await alternativeGroup(windowId, groupId);
+			if (group == null) {
+				console.log(`Cannot stash the last group in a window.`);
+				return;
+			}
+		}
+
+		// If the group is being stashed, unload all tabs in the group.
+		if (state) {
+			let array = [];
+
+			await TABINTERFACE.forEach(function (tab) {
+				if (tab.pinned) return;
+				array.push(tab.id);
+
+			}, windowId, groupId);
+
+			await tryBrowserArrayOperation(array, browser.tabs.discard);
+		}
+
+		grpIfc.setStash(groupId, state);
+
+		// TODO trigger panorama view event
+		let view = panoramaTabs[windowId];
+		if (view != null) {
+			await view.onStashed(groupId);
+		}
+	}
+
+	if (now) {
+		await set();
+	}
+	else {
+		QUEUE.do(null, set);
+	}
+}
+
+function enqueueTask(task, param = null) {
+	QUEUE.do(param, task);
+}
+
+function getView(windowId) {
+	return panoramaTabs[windowId];
 }
 
 async function handleMessage(request, sender, sendResponse) {
 	switch (request.message) {
-	case MSG_SWITCH_TO_GROUP:
-		switchToGroup(request.options);
-		break;
-
-	case MSG_SET_STASHED:
-		groups.setStashed(request.options.id, request.options.state);
-		if (request.options.state) {
-			unloadGroup(request.options.id);
-		}
-		try {
-			sendMessageToView(await (groups.get(request.options.id)).windowId, CONTENT_MSG_STASH_GROUP, {
-				id: request.options.id
-				, state: request.options.state
-			});
-		}
-		catch (e) {}
-		switchToActiveOrCurrent(request.options.id);
-		break;
-
-	case MSG_UNLOAD_GROUP:
-		unloadGroup(request.options);
-		break;
-
-	case MSG_RELOAD_GROUP:
-		reloadGroup(request.options);
-		break;
-
-	case MSG_OPEN_VIEW:
-		openView();
-		break;
-
-	case MSG_DELETE_GROUP:
-		deleteGroup(request.options);
-		break;
-
-	case MSG_NEWTAB:
-		browser.tabs.create({
-			// active: true
-		})
-		break;
-
-	case MSG_REINIT:
-		reinit();
-		break;
-
-	case MSG_NEW_GROUP:
-		let group = await groups.create();
-		try {
-			sendMessageToView(group.windowId, CONTENT_MSG_NEW_GROUP, {
-				group: group
-			});
-		}
-		catch (e) {}
-		break;
-
-	case MSG_SET_ACTIVE:
-		groups.setActive(request.options);
-		break;
-
-	case MSG_RENAME_GROUP:
-		await groups.rename(request.options.id, request.options.name);
-		break;
-
-	case MSG_BEACON:
-		handleBeacon(request.options);
-		break;
-
 	case MSG_UPDATE_CATCH_RULES:
 		await updateCatchRules();
 		break;
@@ -529,167 +331,135 @@ async function handleMessage(request, sender, sendResponse) {
 
 }
 
-async function handleBeacon(pTabId) {
-	let tab = await browser.tabs.get(pTabId);
-
-	if (panoramaTabs[tab.windowId] != null) {
-		browser.tabs.get(panoramaTabs[tab.windowId]).then(resolve => {
-			if (resolve.url == panoramaViewUrl && tab.id != resolve.id) {
-				browser.tabs.remove(resolve.id);
-			}
-		});
-	}
-
-	panoramaTabs[tab.windowId] = tab.id;
-}
-
-async function tabActivated(info) {
-	let id = info.tabId;
-
-	if (id == panoramaTabs[info.windowId]) return;
-
-	let groupId;
-	let tab;
-
-	try {
-		await Promise.all([
-			browser.tabs.get(id).then(function (pTab) {
-				tab = pTab;
-			}),
-
-			tabs.getGroupId(id).then(function (pGroupId) {
-				groupId = pGroupId;
-			})
-		]);
-	}
-	catch (e) {
-		console.log(e);
-		return;
-	}
-
-	if (groupId == undefined || groupId == -1 || tab.pinned) return;
-
-	let activeGroup = await groups.getActive();
-
-	if (groupId != activeGroup) {
-		let group;
-
-		group = await groups.get(groupId);
-
-		if (group === undefined) {
-			console.log(`Attempted to switch to non-existent group. Cause: ${info.tabId}`);
-			console.log(`Attempted to fetch group ${groupId}`);
-			return;
-		}
-
-		if (group.stash == true) {
-			sendMessageToView(info.windowId, CONTENT_MSG_STASH_GROUP, {
-				id: groupId
-				, state: false
-			});
-		}
-
-		groups.setActive(groupId);
-	}
-}
-
-async function removePanoramaViewTabs() {
-	browser.tabs.query({
-		url: browser.extension.getURL('view.html')
-	}).then(r => {
-		r.forEach(tab => {
-			let b = false;
-			for (let key in panoramaTabs) {
-				if (panoramaTabs[key] == tab.id) {
-					b = true;
-					break;
-				}
-			}
-			if (!b) {
-				browser.tabs.remove(tab.id);
-			}
-		})
-	})
-}
-
 async function reinit() {
 	panoramaTabs = [];
 	await removePanoramaViewTabs();
-	await salvageGrouplessTabs();
+	await groupOrphans();
 	await updateCatchRules();
 }
 
-async function init() {
-	await migrateSettings();
-	panoramaViewUrl = browser.runtime.getURL('view.html');
-	let currentTab = await browser.tabs.query({
-		active: true
-		, currentWindow: true
+function init() {
+	QUEUE = newSyncQueue(false);
+
+	QUEUE.do(null, async function () {
+		BROWSERQUEUE = newSyncQueue();
+		await migrateSettings();
+		panoramaViewUrl = browser.runtime.getURL('view.html');
+
+		TABINTERFACE = await tabInterface(QUEUE, BROWSERQUEUE);
+		await reinit();
+		await initContextMenu();
 	});
 
-	await setupWindows();
-	await groups.init();
-	await removePanoramaViewTabs();
-	await salvageGrouplessTabs();
+	browser.tabs.onCreated.addListener(function (tab) {
+		QUEUE.do(null, async function () {
+			tab = await TABINTERFACE.onCreated(tab);
 
-	initContextMenu();
-
-	browser.windows.onCreated.addListener(createGroupInWindow);
-	browser.tabs.onCreated.addListener(tabCreated);
-	browser.tabs.onActivated.addListener(tabActivated);
-	browser.runtime.onMessage.addListener(handleMessage);
-
-	browser.commands.onCommand.addListener(async function (command) {
-		switch (command) {
-		case "open-panorama":
-			openView();
-			break;
-		case "open-popup":
-			browser.browserAction.openPopup();
-			break;
-		case "cycle-next-group":
-			cycleGroup(true);
-			break;
-		case "cycle-previous-group":
-			cycleGroup(false);
-			break;
-		}
+			let view = panoramaTabs[tab.windowId];
+			if (view != null) {
+				await view.onCreated(tab, tab.groupId);
+			}
+		});
 	});
+	// {properties: [`discarded`, `favIconUrl`, `pinned`, `title`]};
 
-	// browser.webNavigation.onCompleted.addListener(tabCatch);
+	browser.tabs.onRemoved.addListener(function (tabId, info) {
+		QUEUE.do(null, async function () {
+			let groupId = TABINTERFACE.getGroupId(tabId);
+			TABINTERFACE.onRemoved(tabId, info);
+			let windowId = info.windowId;
 
-	await updateCatchRules();
+			let view = panoramaTabs[windowId];
+			if (view == null) return;
 
-	browser.webNavigation.onCompleted.addListener(async (nav) => {
-		let tab;
-		try {
-			tab = await browser.tabs.get(nav.tabId);
-		}
-		catch (e) {
-			console.log(e);
-			return;
-		}
-
-		tabCatch(tab, (tabId, groupId) => {
-			tabs.setGroupIdUpdate(tabId, groupId);
-			sendMessageToView(tab.windowId, CONTENT_MSG_TAB_MOVED, {
-				id: tab.id
-			});
+			if (view.tabId == tabId) {
+				delete panoramaTabs[windowId];
+			}
+			else {
+				view.onRemoved(tabId, groupId);
+			}
 		});
 	});
 
+	browser.tabs.onActivated.addListener(function (info) {
+		QUEUE.do(null, async function () {
+			let tabId = info.tabId;
+			let windowId = info.windowId;
 
-	let windowId = (await browser.windows.getCurrent()).id;
-	await groups.setActive(await browser.sessions.getWindowValue(windowId, 'activeGroup'));
+			let view = panoramaTabs[windowId];
+			if (view != null) {
+				if (view.tabId == tabId) {
+					view.onActivated(tabId);
+					return;
+				}
+				else {
+					browser.tabs.hide(view.tabId);
+				}
+			}
 
-	// printSessionData();
-}
+			let groupId = TABINTERFACE.getGroupId(tabId);
+			await TABINTERFACE.setActiveGroup(windowId, groupId);
+		});
+	});
 
-async function printSessionData() {
-	let windowId = (await browser.windows.getCurrent()).id;
+	browser.tabs.onMoved.addListener(function (tabId, info) {
+		QUEUE.do(null, async function () {
+			TABINTERFACE.onMoved(tabId, info);
 
-	console.log(await browser.sessions.getWindowValue(windowId, 'activeGroup'));
-	console.log(await browser.sessions.getWindowValue(windowId, 'groups'));
+			let view = panoramaTabs[info.windowId];
+			if (view != null) {
+				await view.onMoved(tabId);
+			}
+		});
+	});
+
+	browser.tabs.onUpdated.addListener(function (tabId, info, tab) {
+		QUEUE.do(null, async function () {
+			let windowId = tab.windowId;
+
+			tab = TABINTERFACE.onUpdated(tab);
+			if (tab == null) return;
+
+			let view = panoramaTabs[tab.windowId];
+
+			if (view != null) {
+				try {
+					if (`pinned` in info) {
+						await view.onUpdated(tab, info);
+					}
+					else {
+						view.onUpdated(tab, info);
+					}
+				}
+				catch (e) {
+					console.log(e);
+				}
+			}
+		});
+	});
+
+	// browser.tabs.onAttached.addListener(TABINTERFACE.onAttached);
+
+	browser.commands.onCommand.addListener(async function (command) {
+		QUEUE.do(null, async function () {
+			switch (command) {
+			case "open-panorama":
+				await openView();
+				break;
+			case "open-popup":
+				await browser.browserAction.openPopup();
+				break;
+			case "cycle-next-group":
+				await cycleGroup(1);
+				break;
+			case "cycle-previous-group":
+				await cycleGroup(-1);
+				break;
+			}
+		});
+	});
+
+	QUEUE.enable();
 }
 
 init();

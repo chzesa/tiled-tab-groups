@@ -137,32 +137,12 @@ function makeDateString() {
 	return string;
 }
 
-async function insertGroupInfo() {
-	const anchor = document.getElementById('group-info');
-
-	await groups.init();
-
-	groups.forEach(function (group) {
-		var info = new_element('span', {
-			class: ''
-			, content: `Id '${group.id}' name: '${group.name}' (window: '${group.windowId}'), stashed: ${group.stash}`
-		});
-		var node = new_element('div', {
-			class: ''
-		}, [info]);
-
-		anchor.appendChild(node);
-		// }
-	});
-}
-
-let regexSpecialCharacters = /'\[|\]|\(|\)|\{|\}|\\|\.|\^|\$|\+|\?|\|'/;
-
 function wildcardToRegex(str) {
+	const regexSpecialCharacters = /'\[|\]|\(|\)|\{|\}|\\|\.|\^|\$|\+|\?|\|'/;
 	let ret = "";
 
-	for (let i = 0; i < str.length; i++) {
-		let c = str.charAt(i);
+	for (var i = 0; i < str.length; i++) {
+		var c = str.charAt(i);
 		if (regexSpecialCharacters.test(c)) {
 			ret += '\\' + c;
 		}
@@ -178,7 +158,9 @@ function wildcardToRegex(str) {
 }
 
 var rules = [];
-
+var TABINTERFACE;
+var bgPage;
+var WINDOW_ID;
 // Last edit values:
 // 0 = default
 // 1 = regex
@@ -205,7 +187,7 @@ async function newRule(str) {
 	});
 
 	await saveRules();
-	updateRules();
+	await updateRules();
 }
 
 async function saveRules() {
@@ -232,7 +214,7 @@ async function saveRules() {
 		"rules": rules
 	});
 
-	commsUpdateCatchRules();
+	bgPage.enqueueTask(bgPage.updateCatchRules);
 }
 
 async function makeRuleNode(i, regexMode) {
@@ -256,7 +238,6 @@ async function makeRuleNode(i, regexMode) {
 	let arrowdiv = new_element('div', {
 		class: 'arrow_button_container'
 	}, [ruleUp, ruleDown]);
-
 
 	var save = new_element('div', {
 		title: 'Save changes'
@@ -312,7 +293,7 @@ async function makeRuleNode(i, regexMode) {
 
 	let default_index = -1;
 
-	groups.forEach(function (group) {
+	await TABINTERFACE.getGroupInterface(WINDOW_ID).forEach(function (group) {
 		let o = [group.name, group.id];
 		ind.push(o);
 		let option = document.createElement('option');
@@ -476,20 +457,10 @@ async function updateRules() {
 	}
 	let config = await browser.storage.local.get();
 	let regexMode = config.regex_over_wildcard;
-	await groups.init();
+
 	for (let i = 0; i < rules.length; i++) {
 		makeRuleNode(i, regexMode);
 	}
-}
-
-async function initRules() {
-	await browser.storage.local.get().then(async function (v) {
-		if (v.rules != undefined) {
-			rules = v.rules;
-
-			await updateRules();
-		}
-	});
 }
 
 async function insertShortcutOptions() {
@@ -542,7 +513,7 @@ async function insertShortcutOptions() {
 	}
 }
 
-async function saveBackup() {
+/* async function saveBackup() {
 	var data = {
 		file: {
 			type: 'panoramaView'
@@ -608,7 +579,7 @@ async function saveBackup() {
 		, conflictAction: 'uniquify'
 		, saveAs: true
 	});
-}
+} */
 
 async function initCheckboxWithId(pElementId, pControllingSetting, pCallback) {
 	initInputOptionWithId(pElementId, 'click', 'checked', false, pControllingSetting, pCallback);
@@ -633,13 +604,15 @@ async function initInputOptionWithId(pElementId, pEvent, pValueKey, pDefaultValu
 	}, false);
 }
 
-function init() {
+async function init() {
+	bgPage = browser.extension.getBackgroundPage();
+	TABINTERFACE = await bgPage.registerPopup();
+	WINDOW_ID = (await browser.windows.getCurrent()).id;
 	//document.getElementById('backupFileInput').addEventListener('change', loadBackup);
 	// document.getElementById('saveBackupButton').addEventListener('click', saveBackup);
 	insertShortcutOptions();
 
 	initCheckboxWithId('tst', 'use_tst_indent');
-	initCheckboxWithId('tst_context', 'use_tst_context');
 	initCheckboxWithId('tst_tree_close', 'use_tst_tree_close');
 	initCheckboxWithId('ftt', 'ftt');
 	// initCheckboxWithId('tst_move', 'use_tst_move');
@@ -655,19 +628,17 @@ function init() {
 	document.getElementById('add-catch-rule').addEventListener('click', function () {
 		newRule("");
 	});
-	// insertGroupInfo();
-	initRules();
 
-	document.getElementById('run-tab-catch').addEventListener('click', async function () {
-		await updateCatchRules();
+	browser.storage.local.get().then(async function (config) {
+		rules = config.rules;
+		await updateRules();
+	});
 
-		await tabs.forEach(function (tab) {
-			tabCatch(tab, function (tabId, groupId) {
-				tabs.setGroupId(tabId, groupId);
-			});
-		})
-
-		tabs.toggleAll();
+	document.getElementById('run-tab-catch').addEventListener('click', function () {
+		bgPage.enqueueTask(async function () {
+			await bgPage.updateCatchRules();
+			await TABINTERFACE.forEach(bgPage.tabCatch);
+		});
 	});
 }
 

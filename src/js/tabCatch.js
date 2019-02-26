@@ -1,4 +1,14 @@
 let tab_catch_rules = [];
+var webNavigationListener = false;
+
+async function onWebNavigation(nav) {
+	let tab;
+	try {
+		tab = await browser.tabs.get(nav.tabId);
+		tabCatch(tab);
+	}
+	catch (e) {}
+}
 
 async function updateCatchRules() {
 	let rules;
@@ -36,15 +46,19 @@ async function updateCatchRules() {
 
 		tab_catch_rules.push(o);
 	}
+
+	if (rules.length > 0 && !webNavigationListener) {
+		browser.webNavigation.onCompleted.addListener(onWebNavigation);
+		webNavigationListener = true;
+	}
+
+	if (rules.length == 0 && webNavigationListener) {
+		browser.webNavigation.onCompleted.removeListener(onWebNavigation);
+		webNavigationListener = false;
+	}
 }
 
-async function tabCatchNav(nav, callback) {
-	browser.tabs.get(nav.tabId).then(function (tab) {
-		tabCatch(tab, callback);
-	});
-}
-
-async function tabCatch(tab, callback) {
+async function tabCatch(tab) {
 	for (let i = 0; i < tab_catch_rules.length; i++) {
 		let rule = tab_catch_rules[i];
 		let rx = rule.regex;
@@ -57,16 +71,20 @@ async function tabCatch(tab, callback) {
 			continue;
 		}
 
-		let group = groups.get(rule.targetId);
+		let group = TABINTERFACE.getGroup(tab.windowId, rule.targetId);
 
-		if (group == undefined) {
+		if (group == null) {
 			break;
 		}
 
 		if (tab.windowId == group.windowId) {
-			if (callback != null) {
-				callback(tab.id, group.id);
-			}
+			QUEUE.do(null, async function () {
+				await TABINTERFACE.setGroupId(tab.id, group.id);
+				let view = panoramaTabs[tab.windowId];
+				if (view != null) {
+					await view.reorderGroup(group.id);
+				}
+			});
 		}
 		break;
 	}

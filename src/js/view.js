@@ -1,6 +1,6 @@
 'use strict';
 
-var background = browser.extension.getBackgroundPage();
+var bgPage;
 var use_tst_indent = false;
 var use_tst_move = false;
 var use_tst_tree_close = false;
@@ -18,22 +18,56 @@ var view = {
 	tabs: {}
 };
 
+var WINDOW_ID;
+var TAB_ID;
+var TABINTERFACE;
+var GRPINTERFACE;
+
 var out_of_order_groups = {};
 var tab_count_recount_groups = {};
 
+var use_indent = false;
+
 async function initView() {
+	bgPage = browser.extension.getBackgroundPage();
 	view.groupsNode = document.getElementById('groups');
 	view.stashNode = document.getElementById('group-pool');
+	pinned = document.getElementById('pinnedTabs');
+	tab_node_pool_anchor = document.getElementById('tab-pool');
+
+	WINDOW_ID = (await browser.windows.getCurrent()).id;
+	TAB_ID = (await browser.tabs.getCurrent()).id;
+
+	var count = 0;
+	while (TABINTERFACE == null) {
+		count++;
+		if (count > 20) return;
+		TABINTERFACE = await bgPage.registerView({
+			tabId: TAB_ID
+			, windowId: WINDOW_ID
+			, onCreated
+			, onRemoved
+			, onUpdated
+			, onMoved
+			, onStashed
+			, onActivated
+			, onGroupCreated
+			, onGroupRemoved
+			, reorderGroup
+			, getSelection: function () {
+				let ret = Selected.get();
+				Selected.clear();
+				return ret;
+			}
+			, clearSelection: function () {
+				Selected.clear();
+			}
+		});
+	}
+
+	GRPINTERFACE = TABINTERFACE.getGroupInterface(WINDOW_ID);
 
 	await Promise.all([
-		browser.windows.getCurrent().then(pWindow => {
-			view.windowId = pWindow.id;
-		}),
-
-		browser.tabs.getCurrent().then(pTab => {
-			view.tabId = pTab.id;
-		}),
-
 		browser.storage.local.get().then(pValue => {
 			use_tst_indent = pValue.use_tst_indent || false;
 			use_tst_move = pValue.use_tst_move || false;
@@ -45,72 +79,53 @@ async function initView() {
 			}
 
 			appendCSS(pValue.panorama_css);
-
-
-		}),
-
-		groups.init().then(_ => {
-			initGroupNodes()
 		})
-		, initTabNodes()
-		, prefetchGroupIds()
 	]);
 
-	await Promise.all([
-		setActiveTabNode()
-		, fillGroupNodes()
-	])
+	await fillGroupNodes();
+	await setActiveTabNode();
 
-	if (use_tst_indent || use_ftt)
-	tabs.forEach(tab => {
-		updateIndent(tab.id);
-	});
+	await TABINTERFACE.forEach(async function (tab) {
+		let groupId = await TABINTERFACE.getGroupId(tab.id);
 
-	await correctGroupTabCounts();
+		if (groupId == -1 || GRPINTERFACE.get(groupId) == null ||
+			GRPINTERFACE.get(groupId).stash) {
+			return;
+		}
 
-	cmd_que.onComplete(correctOutOfOrderGroups);
-	cmd_que.onComplete(correctGroupTabCounts);
+		updateTabNode(tab);
+	}, WINDOW_ID);
+
+	if (use_tst_indent) {
+		updateIndent = updateIndentTst;
+		use_indent = true;
+	}
+	else if (use_ftt) {
+		updateIndent = updateIndentFtt;
+		use_indent = true;
+	}
+
+	if (use_indent) {
+		TABINTERFACE.forEach(async function (tab) {
+			updateIndent(tab.id);
+		}, WINDOW_ID)
+	}
 
 	view.dragIndicator = new_element('div', {
 		class: 'drag_indicator'
 	});
 	view.groupsNode.appendChild(view.dragIndicator);
-
-	// set all listeners
-	// browser.tabs.onCreated.addListener(tabCreated);
-	browser.tabs.onCreated.addListener(async (tab) => {
-		cmd_que.do([tab], tabCreatedCmd);
-	});
-	// browser.tabs.onRemoved.addListener(tabRemoved);
-	browser.tabs.onRemoved.addListener(async (tab, info) => {
-		cmd_que.do([tab, info], tabRemovedCmd);
-	});
-
-	// browser.tabs.onUpdated.addListener(onTabUpdated);
-	browser.tabs.onUpdated.addListener(async (one, two, three) => {
-		cmd_que.do([one, two, three], onTabUpdatedCmd, true, false);
-	});
-
-	// browser.tabs.onMoved.addListener(tabMoved);
-	browser.tabs.onMoved.addListener(async (tab, info) => {
-		cmd_que.do([tab, info], tabMovedCmd);
-	});
-
-	browser.tabs.onAttached.addListener(tabAttached);
-	browser.tabs.onDetached.addListener(tabDetached);
-
-	browser.tabs.onActivated.addListener(tabActivated);
-
 	view.groupsNode.addEventListener('dragover', groupDragOver, false);
 	view.groupsNode.addEventListener('drop', outsideDrop, false);
 
-	browser.runtime.onMessage.addListener(handleMessage);
-
 	document.getElementById('newGroupButton').addEventListener('click', async function () {
-		commsNewGroup();
+		bgPage.enqueueTask(async function () {
+			let group = await GRPINTERFACE.new();
+			await onGroupCreated(group.id);
+		})
 	});
 
-	Selected.init(() => {
+	Selected.init(function () {
 		let o = {};
 
 		for (let groupId in groupNodes) {
@@ -125,249 +140,122 @@ async function initView() {
 
 		return o;
 	});
-
-	commsBeacon(view.tabId);
-}
-
-async function correctOutOfOrderGroups() {
-	let b = false;
-	for (let i in out_of_order_groups) {
-		b = true;
-		await reorderGroup(i);
-	}
-
-	if (b) {
-		out_of_order_groups = {};
-	}
-}
-
-async function correctGroupTabCounts() {
-	let b = false;
-	for (let i in tab_count_recount_groups) {
-		b = true;
-		updateTabCountById(i);
-	}
-
-	if (b) {
-		tab_count_recount_groups = {};
-	}
-}
-
-function markGroupDisorderly(groupId) {
-	out_of_order_groups[groupId] = true;
-}
-
-function markGroupRecount(groupId) {
-	tab_count_recount_groups[groupId] = true;
-}
-
-async function handleMessage(request) {
-	switch (request.message) {
-	case CONTENT_MSG_STASH_GROUP:
-		// groupStashed(request.options.id, request.options.state);
-		cmd_que.do([request.options.id, request.options.state], groupStashedCmd);
-		break;
-	case CONTENT_MSG_NEW_GROUP:
-		let group = request.options.group;
-		makeGroupNode(group);
-		view.groupsNode.appendChild(groupNodes[group.id].group);
-		break;
-
-	case CONTENT_MSG_TAB_MOVED:
-		// updateMovedTab(request.options.id);
-		cmd_que.do([request.options.id], updateMovedTabCmd);
-		break;
-
-	case CONTENT_MSG_GET_SELECTION:
-		return new Promise(resolve => {
-			resolve(Selected.get());
-			Selected.clear();
-		});
-		break;
-
-	case CONTENT_MSG_CLEAR_SELECTION:
-		Selected.clear();
-		break;
-	}
 }
 
 document.addEventListener('DOMContentLoaded', initView, false);
 
-async function groupStashedCmd(args) {
-	await groupStashed(args[0], args[1]);
-}
-
-async function groupStashed(groupId, stashed) {
-	if (!stashed) {
-		setGroupVisible(groupId, true);
-		Selected.requireUpdate();
-	}
-}
-
-async function tabCreatedCmd(args) {
-	await tabCreated(args[0], args[1]);
-}
-
-async function tabCreated(tab, groupId = undefined) {
-	if (view.windowId == tab.windowId) {
-		await makeTabNode(tab);
-		updateTabNode(tab);
-		updateIndent(tab.id);
-		updateFavicon(tab);
-
-		cmd_que.do([tab, tabs.getGroupId(tab.id)], insertTabCmd, true);
-	}
-}
-
-async function tabRemovedCmd(args) {
-	await tabRemoved(args[0], args[1]);
-}
-
-async function tabRemoved(tabId, removeInfo) {
-	if (view.windowId == removeInfo.windowId && view.tabId != tabId) {
-		deleteTabNode(tabId);
-		groups.forEach(function (group) {
-			// updateTabCount(group);
-			markGroupRecount(group.id);
-		});
-
-		// tabs.forEach(pTab => {
-		// 	updateIndent(pTab);
-		// })
-	}
-}
-
-async function onTabUpdatedCmd(args) {
-	await onTabUpdated(args[0], args[1], args[2]);
-}
-
-async function onTabUpdated(pTabId, pChangeInfo = {}, pTab = {}) {
-	if (view.windowId != pTab.windowId) {
+async function onCreated(tab, groupId) {
+	if (GRPINTERFACE.get(groupId).stash) {
 		return;
 	}
 
-	if ('discarded' in pChangeInfo || 'title' in pChangeInfo) {
-		updateTabNode(pTab);
+	makeTabNode(tab);
+
+	if (use_indent) {
+		updateIndent(tab.id);
 	}
 
-	updateFavicon(pTab);
+	updateTabNode(tab);
+	await insertTab(tab, groupId);
+	Selected.requireUpdate();
+}
 
-	if ('pinned' in pChangeInfo) {
-		let groupId = await tabs.getGroupId(pTabId);
-		let tabNode = tabNodes[pTabId].tab;
+function onRemoved(tabId, groupId) {
+	deleteTabNode(tabId);
+	updateTabCountById(groupId);
+}
 
-		if (pChangeInfo.pinned) {
-			fillGroupNodes().then(_ => {
-				groupNodes.pinned.content.appendChild(tabNode);
-			});
+async function onMoved(tabId, moveInfo) {
+	let groupId = TABINTERFACE.getGroupId(tabId);
+	if (groupId == null) {
+		return;
+	}
+	await reorderGroup(groupId);
+
+	if (use_indent) {
+		updateIndent(tabId);
+	}
+}
+
+function onActivated(tabId) {
+	if (tabId == TAB_ID) setActiveTabNode();
+}
+
+async function onUpdated(tab, info) {
+	if (info.pinned == true) {
+		makeTabNode(tab);
+		partialUpdate(tab, info);
+
+		if (use_indent) {
+			updateIndent(tab.id);
 		}
-		else {
-			let groupContentNode = groupNodes[groupId].content;
-			setAsNthChild(tabNode, groupContentNode, 0);
+
+		let frag = document.createDocumentFragment();
+
+		TABINTERFACE.forEach(async function (tab) {
+			if (tab.pinned) {
+				frag.appendChild(tabNodes[tab.id].tab);
+			}
+		}, WINDOW_ID);
+
+		pinned.appendChild(frag);
+	}
+	else {
+		let groupId = TABINTERFACE.getGroupId(tab.id);
+		if (groupId == -1 || GRPINTERFACE.get(groupId).stash) {
+			if ('pinned' in info) {
+				deleteTabNode(tab.id);
+			}
+
+			return;
 		}
 
-		// updateTabCount(groupId);
-		markGroupRecount(groupId)
-		updateIndent(pTabId);
-	}
-}
+		partialUpdate(tab, info);
 
-async function tabMovedCmd(args) {
-	await tabMoved(args[0], args[1]);
-}
-
-async function tabMoved(tabId, moveInfo) {
-	if (moveInfo.windowId == view.windowId) {
-		try {
-			let id = await tabs.getGroupId(tabId);
-			// reorderGroup(id);
-			markGroupDisorderly(id);
-			markGroupRecount(id);
-		}
-		catch (e) {
-			console.log(e);
+		if ('pinned' in info) {
+			await reorderGroup(groupId);
 		}
 	}
 }
 
-async function updateMovedTabCmd(args) {
-	await (updateMovedTab(args[0]))
-}
+async function onStashed(groupId) {
+	if (GRPINTERFACE.get(groupId).stash == true) {
+		await TABINTERFACE.forEach(function (tab) {
+			deleteTabNode(tab.id);
+		}, WINDOW_ID, groupId);
 
-async function updateMovedTab(pTabId) {
-	browser.tabs.get(pTabId).then(async function (tab) {
-		await insertTab(tab);
-		updateIndent(tab.id)
-		groups.forEach(function (group) {
-			// updateTabCount(group);
-			markGroupRecount(group.id);
-		});
-	});
-}
-
-async function tabAttached(tabId, attachInfo) {
-	if (view.windowId == attachInfo.newWindowId) {
-		let tab = await browser.tabs.get(tabId);
-
-		tabs.setGroupIdUpdate(tabId, await browser.sessions.getWindowValue(view.windowId, 'activeGroup'));
-		tabCreated(tab);
-		Selected.requireUpdate();
+		onGroupRemoved(groupId);
 	}
-}
-
-function tabDetached(tabId, detachInfo) {
-	if (view.windowId == detachInfo.oldWindowId) {
-		deleteTabNode(tabId);
-		groups.forEach(function (group) {
-			// updateTabCount(group);
-			markGroupRecount(group.id);
-		});
-
-		// tabs.forEach(pTab => {
-		// 	updateIndent(pTab);
-		// })
-	}
-}
-
-async function updateIndentationForTree(pTabId) {
-	const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
-	let tree = await browser.runtime.sendMessage(kTST_ID, {
-		type: 'get-tree'
-		, tab: pTabId
-	});
-
-	if (tree.ancestorTabIds.length > 0) {
-		tree = await browser.runtime.sendMessage(kTST_ID, {
-			type: 'get-tree'
-			, tab: tree.ancestorTabIds[0]
-		});
+	else {
+		await onGroupCreated(groupId);
 	}
 
-	forBranchesInTree(pTree, pBranch => {
-		updateIndent(pBranch.id);
-	});
+	Selected.requireUpdate();
 }
 
-async function forBranchesInTree(pTree, pCallback) {
-	pCallback(pTree);
+async function onGroupCreated(groupId) {
+	let group = GRPINTERFACE.get(groupId);
+	if (group.stash) return;
+	makeGroupNode(group);
+	let frag = document.createDocumentFragment();
 
-	for (let i = 0; i < pTree.children.length; i++) {
-		let tree = pTree.children[i];
-		forBranchesInTree(tree);
-	}
+	await TABINTERFACE.forEach(function (tab) {
+		if (!tab.pinned) {
+			frag.appendChild(makeTabNode(tab).tab);
+			updateTabNode(tab);
+			if (use_indent) {
+				updateIndent(tab.id);
+			}
+		}
+	}, WINDOW_ID, groupId);
+
+	setAsNthChild(frag, groupNodes[group.id].content);
+	setGroupVisible(groupId, true);
+	updateTabCountById(groupId);
 }
 
-async function tabActivated(activeInfo) {
-	if (activeInfo.tabId !== view.tabId) {
-		browser.tabs.hide(view.tabId);
-	}
-
-	setActiveTabNode();
-}
-
-async function printCoordinates() {
-	for (let id in tabNodes) {
-		console.log(tabNodes[id].tab);
-		console.log(tabNodes[id].tab.getBoundingClientRect());
-	}
+async function onGroupRemoved(groupId) {
+	groupNodes[groupId].group.parentNode.removeChild(groupNodes[groupId].group);
+	delete groupNodes[groupId];
+	Selected.requireUpdate();
 }
