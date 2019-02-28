@@ -25,11 +25,7 @@ async function registerView(view) {
 			res(TABINTERFACE);
 		}
 
-		var count = 0;
-		while (QUEUE == null) {
-			count++;
-			if (count > 20) return;
-		}
+		while (QUEUE == null) {}
 
 		QUEUE.do(null, attemptResolve);
 	});
@@ -45,11 +41,7 @@ function registerPopup() {
 			res(TABINTERFACE);
 		}
 
-		var count = 0;
-		while (QUEUE == null) {
-			count++;
-			if (count > 20) return;
-		}
+		while (QUEUE == null) {}
 
 		QUEUE.do(null, attemptResolve);
 	});

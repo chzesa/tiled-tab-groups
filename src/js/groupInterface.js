@@ -4,34 +4,6 @@ async function groupInterface(windowId) {
 	var array = [];
 	var nextIndex;
 
-	try {
-		nextIndex = await browser.sessions.getWindowValue(windowId, 'groupIndex') || 0;
-		let temp = await browser.sessions.getWindowValue(windowId, 'groups');
-		groups = {};
-		if (temp != null) {
-			for (var i = 0; i < temp.length; i++) {
-				let grp = temp[i];
-				grp.index = i;
-				groups[grp.id] = grp;
-				array.push(grp);
-			}
-		}
-
-		if (groups == null) {
-			groups = {};
-			await self.new();
-		}
-
-		for (var key in groups) {
-			var group = groups[key];
-			group.windowId = windowId;
-			group.tabCount = 0;
-		}
-	}
-	catch (e) {
-		return null;
-	}
-
 	self.save = async function () {
 		try {
 			await browser.sessions.setWindowValue(windowId, 'groups', array);
@@ -124,6 +96,32 @@ async function groupInterface(windowId) {
 		}
 
 		await Promise.all(promises);
+	}
+
+	{
+		nextIndex = await browser.sessions.getWindowValue(windowId, 'groupIndex') || 0;
+		let temp = await browser.sessions.getWindowValue(windowId, 'groups');
+
+		if (temp != null) {
+			groups = {};
+			for (var i = 0; i < temp.length; i++) {
+				let grp = temp[i];
+				grp.index = i;
+				groups[grp.id] = grp;
+				array.push(grp);
+			}
+		}
+
+		if (groups == null) {
+			groups = {};
+			await self.new();
+		}
+
+		for (var key in groups) {
+			var group = groups[key];
+			group.windowId = windowId;
+			group.tabCount = 0;
+		}
 	}
 
 	return self;
