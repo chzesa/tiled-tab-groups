@@ -30,14 +30,13 @@
 	"applications": {
 		"gecko": {
 			"id": "{dcdaadfa-21f1-4853-9b34-aad681fff6f3}"
-			, "strict_min_version": "59.0a1"
+			, "strict_min_version": "65.0a1"
 		}
 	},
 
 	"background": {
 		"scripts": [
-			"external/js-syncqueue/src.js", "js/const.js"
-			, "js/menu.js"
+			"external/js-syncqueue/src.js", "js/menu.js"
 			, "js/tabInterface.js", "js/groupInterface.js"
 			, "js/tabCatch.js", "js/migrate.js"
 			, "js/bgViews.js", "js/background.js"
