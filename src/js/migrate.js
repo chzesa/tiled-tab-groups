@@ -70,7 +70,7 @@ async function migrateSettings() {
 	}
 
 	if (olderVersion(config.version, "0.16.0")) {
-		delete config[use_tst_context];
+		delete config[`use_tst_context`];
 	}
 
 	if (olderVersion(config.version, "1.0.0")) {
