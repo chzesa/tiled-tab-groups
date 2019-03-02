@@ -398,6 +398,15 @@ function init() {
 			}
 
 			let groupId = TABINTERFACE.getGroupId(tabId);
+			if (groupId == -1) return;
+
+			let group = TABINTERFACE.getGroup(windowId, groupId);
+			if (group == null) return;
+
+			if (group.stash == true) {
+				await setStash(windowId, groupId, false, true);
+			}
+
 			await TABINTERFACE.setActiveGroup(windowId, groupId);
 		});
 	});
