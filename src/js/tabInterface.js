@@ -227,7 +227,9 @@ async function tabInterface(queue, browserQueue) {
 
 			for (var i = 0; i < n; i++) {
 				var tab = tabs[tabId[i]];
-				if (tab == null || tab.groupId == groupId) return;
+				if (tab == null || tab.groupId == groupId) {
+					continue;
+				}
 
 				tab.groupId = groupId;
 
