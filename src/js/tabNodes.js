@@ -109,17 +109,18 @@ function partialUpdate(tab, info) {
 	let node = tabNodes[tab.id];
 	if (node == null) return;
 
-	if (info.title != null) {
+	if (info.title) {
 		node.name.innerHTML = '';
 		node.name.appendChild(document.createTextNode(tab.title));
 	}
 
-	if (info.favIconUrl != null) {
-		if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage)
-		node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
-		else
-		node.favicon.style.backgroundImage = '';
-		return;
+	if (info.favIconUrl) {
+		if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage) {
+			node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
+		}
+		else {
+			node.favicon.style.backgroundImage = '';
+		}
 	}
 
 	if (info.discarded != null) {
