@@ -297,7 +297,7 @@ async function setStash(windowId, groupId, state, now = false) {
 			await tryBrowserArrayOperation(array, browser.tabs.discard);
 		}
 
-		grpIfc.setStash(groupId, state);
+		await grpIfc.setStash(groupId, state);
 
 		// TODO trigger panorama view event
 		let view = panoramaTabs[windowId];
