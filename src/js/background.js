@@ -299,7 +299,6 @@ async function setStash(windowId, groupId, state, now = false) {
 
 		await grpIfc.setStash(groupId, state);
 
-		// TODO trigger panorama view event
 		let view = panoramaTabs[windowId];
 		if (view != null) {
 			await view.onStashed(groupId);
@@ -361,7 +360,6 @@ function init() {
 			}
 		});
 	});
-	// {properties: [`discarded`, `favIconUrl`, `pinned`, `title`]};
 
 	browser.tabs.onRemoved.addListener(function (tabId, info) {
 		QUEUE.do(null, async function () {

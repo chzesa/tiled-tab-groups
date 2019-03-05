@@ -127,10 +127,6 @@ function makeGroupNode(group) {
 		var groupUnloaded = true;
 
 		await TABINTERFACE.forEach(function (tab) {
-			if (!groupUnloaded) {
-				return;
-			}
-
 			if (!tab.discarded && !tab.pinned) {
 				groupUnloaded = false;
 			}
@@ -138,7 +134,6 @@ function makeGroupNode(group) {
 
 		if (groupUnloaded || window.confirm(`Stash group ${group.name}?\n` +
 				`Stashed groups can be retrieved from the popup panel.`)) {
-
 			bgPage.setStash(WINDOW_ID, group.id, true);
 		}
 
@@ -151,8 +146,6 @@ function makeGroupNode(group) {
 
 		if (window.confirm(`Reload ${tabCount} tab${tabCount == 1 ? '' : 's'} ` +
 				`in group ${group.name}?`)) {
-
-			let array = [];
 
 			await TABINTERFACE.forEach(async function (tab) {
 				if (tab.pinned) return;
