@@ -184,7 +184,8 @@ function onActivated(tabId) {
 async function onUpdated(tab, info) {
 	if (info.pinned == true) {
 		makeTabNode(tab);
-		partialUpdate(tab, info);
+		// partialUpdate(tab, info);
+		updateTabNode(tab);
 
 		if (use_indent) {
 			updateIndent(tab.id);
@@ -210,7 +211,8 @@ async function onUpdated(tab, info) {
 			return;
 		}
 
-		partialUpdate(tab, info);
+		// partialUpdate(tab, info);
+		updateTabNode(tab);
 
 		if ('pinned' in info) {
 			await reorderGroup(groupId);

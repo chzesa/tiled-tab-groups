@@ -90,6 +90,9 @@ function makeTabNode(tab) {
 	}
 
 	tabNodes[tab.id] = tab_object;
+
+	setNodeClass(tab_object.tab, 'inactive', tab.discarded);
+
 	return tab_object;
 }
 
@@ -109,12 +112,12 @@ function partialUpdate(tab, info) {
 	let node = tabNodes[tab.id];
 	if (node == null) return;
 
-	if (info.title) {
+	if (info.title != null) {
 		node.name.innerHTML = '';
 		node.name.appendChild(document.createTextNode(tab.title));
 	}
 
-	if (info.favIconUrl) {
+	if (info.favIconUrl != null) {
 		if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage) {
 			node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
 		}
@@ -137,11 +140,12 @@ function updateTabNode(tab) {
 
 	setNodeClass(node.tab, 'inactive', tab.discarded);
 
-	if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage)
-	node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
-	else
-	node.favicon.style.backgroundImage = '';
-	return;
+	if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage) {
+		node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
+	}
+	else {
+		node.favicon.style.backgroundImage = '';
+	}
 }
 
 async function setActiveTabNode() {
