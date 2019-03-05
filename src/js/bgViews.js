@@ -47,8 +47,10 @@ function registerPopup() {
 	});
 }
 
-async function openView() {
-	let windowId = (await browser.windows.getCurrent()).id;
+async function openView(windowId = null) {
+	if (windowId == null) {
+		windowId = (await browser.windows.getCurrent()).id;
+	}
 	let view = panoramaTabs[windowId];
 
 	if (view == null) {

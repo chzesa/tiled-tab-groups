@@ -52,6 +52,9 @@ async function init() {
 				console.log(e);
 			}
 		}
+		else {
+			bgPage.enqueueTask(bgPage.openView, WINDOW_ID);
+		}
 		window.close();
 	});
 
