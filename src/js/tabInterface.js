@@ -199,6 +199,13 @@ async function tabInterface(queue, browserQueue) {
 		correctIndexing(windowId, index);
 	}
 
+	self.onActivated = function (tabId) {
+		let tab = tabs[tabId];
+		if (tab != null) {
+			tab.discarded = false;
+		}
+	}
+
 	self.onUpdated = function (tab) {
 		let oldTab = tabs[tab.id];
 		if (oldTab == null) return;

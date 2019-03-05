@@ -386,6 +386,8 @@ function init() {
 			let tabId = info.tabId;
 			let windowId = info.windowId;
 
+			TABINTERFACE.onActivated(tabId);
+
 			let view = panoramaTabs[windowId];
 			if (view != null) {
 				if (view.tabId == tabId) {
