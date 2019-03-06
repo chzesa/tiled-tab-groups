@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2
 	, "name": "Tiled Tab Groups"
-	, "description": "Tiled tab groups. Based on Totally not Panorama 0.0.10"
+	, "description": "Compact tab groups management"
 	, "version": "0.16.3"
 	, "icons": {
 		"16": "icons/logo/logo-16.png"
