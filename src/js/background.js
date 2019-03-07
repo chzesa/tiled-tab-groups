@@ -180,13 +180,16 @@ async function unloadGroup(windowId, groupId) {
 
 async function alternativeGroup(windowId, groupId) {
 	let grpIfc = TABINTERFACE.getGroupInterface(windowId);
-	let group = grpIfc.getByIndex(0);
-	let i = 1;
+	let group;
+	let i = 0;
 
 	let candidate;
 	let stashCandidate;
 
-	while (group != null) {
+	do {
+		group = grpIfc.getByIndex(i);
+		i++;
+
 		if (group.id == groupId) {
 			continue;
 		}
@@ -198,10 +201,7 @@ async function alternativeGroup(windowId, groupId) {
 		else {
 			stashCandidate = group;
 		}
-
-		group = grpIfc.getByIndex(i);
-		i++;
-	}
+	} while (group != null);
 
 	if (candidate == null && stashCandidate == null) {
 		return null;
