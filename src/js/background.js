@@ -447,7 +447,25 @@ function init() {
 		});
 	});
 
-	// browser.tabs.onAttached.addListener(TABINTERFACE.onAttached);
+	browser.tabs.onAttached.addListener(function (tabId, info) {
+		QUEUE.do(null, async function () {
+			let tab = TABINTERFACE.get(tabId);
+			if (tab == null) return;
+
+			let view = panoramaTabs[tab.windowId];
+			if (view != null) {
+				view.onRemoved(tabId, tab.groupId);
+			}
+
+			await TABINTERFACE.onAttached(tabId, info);
+
+			tab = TABINTERFACE.get(tabId);
+			view = panoramaTabs[tab.windowId];
+			if (view != null) {
+				await view.onCreated(tabId, tab.groupId);
+			}
+		});
+	});
 
 	browser.commands.onCommand.addListener(async function (command) {
 		QUEUE.do(null, async function () {
