@@ -91,8 +91,6 @@ function makeTabNode(tab) {
 
 	tabNodes[tab.id] = tab_object;
 
-	setNodeClass(tab_object.tab, 'inactive', tab.discarded);
-
 	return tab_object;
 }
 
