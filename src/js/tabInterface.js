@@ -126,6 +126,7 @@ async function tabInterface(queue, browserQueue) {
 
 		if (oldTab.windowId == tab.windowId &&
 			oldTab.index == tab.index) {
+			windows[tab.windowId][tab.index] = tab;
 			return tab;
 		}
 
