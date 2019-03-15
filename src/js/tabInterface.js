@@ -123,19 +123,28 @@ async function tabInterface(queue, browserQueue) {
 
 	function swapTabObject(oldTab, tab) {
 		tab.groupId = oldTab.groupId;
+		let windowId = tab.windowId;
 		tabs[tab.id] = tab;
 
-		if (oldTab.windowId == tab.windowId &&
-			oldTab.index == tab.index) {
-			windows[tab.windowId][tab.index] = tab;
+		if (oldTab.windowId == windowId) {
+			if (oldTab.index == tab.index) {
+				windows[windowId][tab.index] = tab;
+			}
+			else {
+				windows[windowId].splice(oldTab.index, 1);
+				windows[windowId].splice(tab.index, 0, tab);
+				correctIndexing(windowId, Math.min(oldTab.index, tab.index)
+					, Math.max(oldTab.index, tab.index) + 1);
+			}
+
 			return tab;
 		}
 
 		windows[oldTab.windowId].splice(oldTab.index, 1);
-		correctIndexing(oldTab.windowId);
+		correctIndexing(oldTab.windowId, oldTab.index);
 
-		windows[tab.windowId].splice(tab.index, 0, tab);
-		correctIndexing(tab.windowId);
+		windows[windowId].splice(tab.index, 0, tab);
+		correctIndexing(windowId, tab.index);
 		return tab;
 	}
 
