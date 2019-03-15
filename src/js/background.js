@@ -489,4 +489,58 @@ function init() {
 	QUEUE.enable();
 }
 
+async function VALIDATE_CACHE() {
+	let tabs = await browser.tabs.query({});
+
+	function find(id) {
+		for (var i = 0; i < tabs.length; i++) {
+			let tab = tabs[i];
+
+			if (tab.id == id) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	for (var i = 0; i < tabs.length; i++) {
+		let tab = tabs[i];
+		let cachedTab = TABINTERFACE.get(tab.id);
+
+		if (cachedTab == null) {
+			console.log(`Tab ${tab.id} (${tab.url}) doesn't exist in cache`);
+		}
+
+		if (tab.index != cachedTab.index) {
+			console.log(`Tab ${tab.id} (${tab.url}) cached index is wrong. Actual ${tab.index}, cached: ${cachedTab.index}`);
+		}
+
+		if (tab.id != cachedTab.id) {
+			console.log(`Cached tab ${cachedTab.id} (${cachedTab.url}) was stored with key ${tab.id})`);
+		}
+	}
+
+	await TABINTERFACE.forEach(async function (tab) {
+		if (!find(tab.id)) {
+			condole.log(`Cache contains tab ${tab.id} (${tab.url}) which wasn't found when querying the browser`);
+		}
+	});
+
+	await TABINTERFACE.forEachWindow(async function (windowId) {
+		await TABINTERFACE.forEach(async function (tab) {
+			if (!find(tab.id)) {
+				condole.log(`Cache contains tab ${tab.id} (${tab.url}) in window ${windowId} array, which wasn't found when querying the browser.`);
+			}
+
+			if (!(TABINTERFACE.get(tab.id) === tab)) {
+				console.log(`Different tab object was stored in window array than in map`);
+				console.log(TABINTERFACE.get(tab.id));
+				console.log(tab);
+			}
+		}, windowId);
+	});
+
+	console.log(`Done.`);
+}
+
 init();
