@@ -123,6 +123,7 @@ async function tabInterface(queue, browserQueue) {
 
 	function swapTabObject(oldTab, tab) {
 		tab.groupId = oldTab.groupId;
+		tabs[tab.id] = tab;
 
 		if (oldTab.windowId == tab.windowId &&
 			oldTab.index == tab.index) {
@@ -133,7 +134,6 @@ async function tabInterface(queue, browserQueue) {
 		windows[oldTab.windowId].splice(oldTab.index, 1);
 		correctIndexing(oldTab.windowId);
 
-		tabs[tab.id] = tab;
 		windows[tab.windowId].splice(tab.index, 0, tab);
 		correctIndexing(tab.windowId);
 		return tab;
