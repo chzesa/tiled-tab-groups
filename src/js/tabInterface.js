@@ -172,12 +172,9 @@ async function tabInterface(queue, browserQueue) {
 
 		await createWindow(windowId);
 
-		let array = windows[windowId];
-		let startLength = array.length;
-
 		tab.groupId = groupId;
 
-		array.splice(tab.index, 0, tab);
+		windows[windowId].splice(tab.index, 0, tab);
 		correctIndexing(windowId, tab.index);
 		tabs[tabId] = tab;
 
