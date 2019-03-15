@@ -58,7 +58,6 @@ async function tabInterface(queue, browserQueue) {
 
 		if (to == null) {
 			to = array.length;
-
 		}
 
 		for (var i = from; i < to; i++) {
