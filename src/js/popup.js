@@ -75,9 +75,8 @@ async function init() {
 
 		bgPage.enqueueTask(async function () {
 			await bgPage.switchToGroup(WINDOW_ID, numKeyTargets[num]);
+			window.close();
 		});
-
-		window.close();
 	});
 
 	toolbar.appendChild(settings);
@@ -130,8 +129,8 @@ async function makeGroupNodes() {
 			}
 			bgPage.enqueueTask(async function () {
 				await bgPage.switchToGroup(WINDOW_ID, group.id);
+				window.close();
 			});
-			window.close();
 		});
 
 		let groupNode = {
