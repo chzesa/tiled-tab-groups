@@ -55,27 +55,31 @@ function tabDragLeave(e) {
 	}
 }
 
+function setDragIndicator(event, element) {
+	var rect = element.getBoundingClientRect();
+
+	view.dragIndicator.classList.add('show');
+	view.dragIndicator.style.width = `${rect.width}px`;
+	view.dragIndicator.style.left = (rect.left) + 'px';
+
+	if (event.clientY < window.scrollY + rect.top + (rect.height / 2)) {
+		view.dragIndicator.style.top = (window.scrollY + rect.top - 1) + 'px';
+		return true;
+	}
+	else {
+		let yOffset = window.scrollY + rect.top + rect.height - 1;
+		view.dragIndicator.style.top = yOffset + 'px';
+		return false;
+	}
+}
+
 function tabDragOver(e) {
 	e.preventDefault();
 
 	e.dataTransfer.dropEffect = 'move'; // See the section on the DataTransfer object.
 
 	if (dragOverTab && dragTab != dragOverTab) {
-		var rect = dragOverTab.getBoundingClientRect();
-
-		view.dragIndicator.classList.add('show');
-		view.dragIndicator.style.width = `${rect.width}px`;
-		view.dragIndicator.style.left = (rect.left) + 'px';
-
-		if (e.clientY < window.scrollY + rect.top + (rect.height / 2)) {
-			view.dragIndicator.style.top = (window.scrollY + rect.top - 1) + 'px';
-			dragDropBefore = true;
-		}
-		else {
-			let yOffset = window.scrollY + rect.top + rect.height - 1;
-			view.dragIndicator.style.top = yOffset + 'px';
-			dragDropBefore = false;
-		}
+		dragDropBefore = setDragIndicator(event, dragOverTab);
 	}
 
 	return false;
