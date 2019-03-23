@@ -55,6 +55,7 @@ async function groupInterface(windowId) {
 			let removedGroup = array.splice(group.index, 1)[0];
 
 			if (group.id != removedGroup.id) {
+				array.splice(group.index, 0, removedGroup);
 				throw new Error(`Mismatch in group array and map`);
 			}
 
