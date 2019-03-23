@@ -22,6 +22,7 @@ var WINDOW_ID;
 var TAB_ID;
 var TABINTERFACE;
 var GRPINTERFACE;
+var manager;
 
 var out_of_order_groups = {};
 var tab_count_recount_groups = {};
@@ -140,6 +141,8 @@ async function initView() {
 
 		return o;
 	});
+
+	manager = newGroupsManager();
 }
 
 document.addEventListener('DOMContentLoaded', initView, false);
