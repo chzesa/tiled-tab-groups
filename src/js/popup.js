@@ -10,11 +10,13 @@ var numKeyTargets = [];
 let WINDOW_ID;
 let bgPage;
 let TABINTERFACE;
+let GRPIFC;
 
 async function init() {
 	bgPage = browser.extension.getBackgroundPage();
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
 	TABINTERFACE = await bgPage.registerPopup();
+	GRPIFC = TABINTERFACE.getGroupInterface(WINDOW_ID);
 
 	let promises = [
 		browser.storage.local.get().then(v => {
@@ -85,7 +87,7 @@ async function init() {
 	stashHolder = document.getElementById('stash');
 	stashTitle = document.getElementById('stash-title');
 
-	updateGroupNodes();
+	await updateGroupNodes();
 	updateActive();
 }
 
@@ -98,9 +100,7 @@ function updateActive() {
 }
 
 async function makeGroupNodes() {
-	let grpIfc = TABINTERFACE.getGroupInterface(WINDOW_ID);
-
-	await grpIfc.forEach(function (group) {
+	await GRPIFC.forEach(function (group) {
 		let text = new_element('div', {
 			class: 'name'
 			, content: group.name
@@ -146,11 +146,13 @@ async function makeGroupNodes() {
 	});
 }
 
-function updateGroupNodes() {
+async function updateGroupNodes() {
 	numKeyTargets = [];
 	numKeyTargets[0] = "-1";
 
-	nodes.forEach(function (node) {
+	await GRPIFC.forEach(function (group) {
+		let node = nodes[group.id];
+
 		if (node.stash) {
 			stashHolder.appendChild(node.html);
 		}
