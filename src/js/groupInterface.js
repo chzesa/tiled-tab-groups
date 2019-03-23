@@ -49,6 +49,28 @@ async function groupInterface(windowId) {
 		}
 	}
 
+	self.setIndex = async function (id, index) {
+		let n = array.length;
+		if (index >= n || index < 0) {
+			throw new Error(`Cannot set index to ${index}. Maximum index ${n - 1}`);
+		}
+
+		let group = groups[id];
+
+		if (group == null) {
+			throw new Error(`Didn't find group ${groupId} in window ${windowId}`);
+		}
+
+		array.splice(group.index, 1);
+		array.splice(index, 0, group);
+
+		for (var i = Math.min(group.index, index); i < n; i++) {
+			array[i].index = i;
+		}
+
+		await self.save();
+	}
+
 	self.remove = async function (id) {
 		let group = groups[id];
 		if (group != null && id != -1) {
