@@ -1,7 +1,8 @@
 @import url("color.css");
 @import url("icon.css");
 
-body {
+body
+{
 	margin: 0;
 	background-color: var(--main-background);
 	font-family: sans-serif;
@@ -9,7 +10,8 @@ body {
 	-moz-user-select: none;
 }
 
-#groups {
+#groups
+{
 	position: absolute;
 	width:100%;
 	height: 100%;
@@ -17,7 +19,8 @@ body {
 	grid-template-columns: repeat(auto-fill, calc((100% - 33px)/7));
 }
 
-#toolbar {
+#toolbar
+{
 	width: 28px;
 	padding: 0px;
 
@@ -31,7 +34,8 @@ body {
 	background-color: var(--group-background);
 }
 
-.drag_indicator {
+.drag_indicator
+{
 	width: 2px;
 	height: 2px;
 
@@ -44,11 +48,13 @@ body {
 	display: none;
 }
 
-.drag_indicator.show {
+.drag_indicator.show
+{
 	display: block;
 }
 
-#newGroupButton {
+#newGroupButton
+{
 	cursor: pointer;
 	width: 28px;
 	height: 28px;
@@ -58,11 +64,13 @@ body {
 	background-position: center;
 }
 
-#toolbar .icon {
+#toolbar .icon
+{
 	display: none;
 }
 
-#selection-box {
+#selection-box
+{
 	pointer-events: none;
 	position: absolute;
 	will-change: transform;

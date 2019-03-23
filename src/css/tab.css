@@ -1,5 +1,6 @@
 .tab,
-.newtab {
+.newtab
+{
 	cursor: pointer;
 	display: flex;
 
@@ -10,33 +11,39 @@
 }
 
 .tab:hover,
-.newtab:hover {
+.newtab:hover
+{
 	border-color: var(--hover-color);
 }
 
-.tab.selected {
+.tab.selected
+{
 	border-color: var(--active-color);
 }
 
-.tab.inactive {
+.tab.inactive
+{
 	font-style: italic;
 	color: var(--text-medium);
 }
 
-.newtab {
+.newtab
+{
 	background-image: url(/icons/plus.svg);
 	background-repeat: no-repeat;
 	background-size: calc(var(--tab-height) * 0.6);
 	background-position: center;
 }
 
-.tab.drag {
+.tab.drag
+{
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 	opacity: 0.5;
 	transform: scale(0.9);
 }
 
-.tab .name {
+.tab .name
+{
 	width: calc(100% - 2 * var(--tab-height));
 
 	overflow: hidden;
@@ -48,7 +55,8 @@
 	text-align: left;
 }
 
-.tab .favicon {
+.tab .favicon
+{
 	width: var(--tab-height);
 
 	background-image: url(/icons/maximize.svg);
@@ -58,10 +66,12 @@
 	display: block;
 }
 
-.icon:hover {
+.icon:hover
+{
 	filter: contrast(0) brightness(4);
 }
 
-.selection {
+.selection
+{
 	background-color: var(--selected-color);
 }

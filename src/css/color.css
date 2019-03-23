@@ -1,7 +1,9 @@
-:root {
+:root
+{
 	--main-background: #212121;
 	--group-background: #373737;
 	--main-border: #555;
+
 	--text-light: #E0E0E0;
 	--text-medium: #9E9E9E;
 	--text-input: #4FC3F7;

@@ -1,61 +1,75 @@
-.icon {
+.icon
+{
 	text-align: center;
 
 	width: var(--tab-height);
 	height: var(--tab-height);
 }
 
-.icon::before {
+.icon::before
+{
 	transform: scale(var(--icon-scale));
 	display: inline-block;
 	text-align: left;
 	margin: auto;
 }
 
-.icon-close::before {
+.icon-close::before
+{
 	content: url(/icons/x.svg);
 }
 
-.icon-settings::before {
+.icon-settings::before
+{
 	content: url(/icons/settings.svg);
 }
 
-.icon-reload::before {
+.icon-reload::before
+{
 	content: url(/icons/refresh-cw.svg);
 }
 
-.icon-unload::before {
+.icon-unload::before
+{
 	content: url(/icons/power.svg);
 }
 
-.icon-stash::before {
+.icon-stash::before
+{
 	content: url(/icons/log-in.svg);
 }
 
-.icon-unstash::before {
+.icon-unstash::before
+{
 	content: url(/icons/log-out.svg);
 }
 
-.icon-edit::before {
+.icon-edit::before
+{
 	content: url(/icons/edit-2.svg);
 }
 
-.icon-check::before {
+.icon-check::before
+{
 	content: url(/icons/check.svg);
 }
 
-.icon-delete::before {
+.icon-delete::before
+{
 	content: url(/icons/delete.svg);
 }
 
-.icon-arrow-up::before {
+.icon-arrow-up::before
+{
 	content: url(/icons/arrow-up.svg);
 }
 
-.icon-loader::before {
+.icon-loader::before
+{
 	content: url(/icons/loader.svg);
 }
 
-.icon-arrow-down::before {
+.icon-arrow-down::before
+{
 	content: url(/icons/arrow-down.svg);
 }

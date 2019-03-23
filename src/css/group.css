@@ -1,4 +1,5 @@
-.group {
+.group
+{
 	border-right: var(--group-separator) 1px dashed;
 	border-bottom: var(--group-separator) 1px dashed;
 	margin-top: var(--group-margin);
@@ -12,11 +13,13 @@
 	width: calc(100% - 2 * var(--group-margin));
 }
 
-.group .header {
+.group .header
+{
 	height: var(--tab-height);
 }
 
-.group .header input {
+.group .header input
+{
 	border: none;
 	background: none;
 	width: calc(100% - 2 * var(--group-margin) - 5 * var(--tab-height));
@@ -37,7 +40,8 @@
 	filter: contrast(0) brightness(2);
 }
 
-.group .header .tab_count {
+.group .header .tab_count
+{
 	background-color: var(--group-background);
 
 	float: right;
@@ -52,7 +56,8 @@
 	line-height: var(--tab-height);
 }
 
-.group .content {
+.group .content
+{
 	max-width: 100%;
 	position: absolute;
 	margin-top: var(--group-margin);
@@ -63,11 +68,13 @@
 }
 
 
-.scroll_padding {
+.scroll_padding
+{
 	/*height: calc(100% - var(--tab-height));*/
 }
 
-#pinnedTabs .tab {
+#pinnedTabs .tab
+{
 	width: 28px;
 	height: 28px;
 	background: var(--group-background);
@@ -76,16 +83,19 @@
 	border-top: var(--main-border) var(--border-size) solid;
 }
 
-#pinnedtabs .tab:first-of-type {
+#pinnedtabs .tab:first-of-type
+{
 	margin-top: 2px;
 }
 
 #pinnedTabs .tab .close,
-#pinnedTabs .tab .name {
+#pinnedTabs .tab .name
+{
 	display: none;
 }
 
-#pinnedTabs .tab .inner {
+#pinnedTabs .tab .inner
+{
 	top: 0;
 	right: 0;
 	bottom: 0;
@@ -97,6 +107,7 @@
 	justify-content: center;
 }
 
-#pinnedTabs .tab .favicon {
+#pinnedTabs .tab .favicon
+{
 	border: 0;
 }
