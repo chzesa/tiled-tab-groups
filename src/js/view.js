@@ -180,8 +180,11 @@ async function onMoved(tabId, moveInfo) {
 	}
 }
 
-function onActivated(tabId) {
-	if (tabId == TAB_ID) setActiveTabNode();
+async function onActivated(tabId) {
+	if (tabId == TAB_ID) {
+		await manager.hide();
+		setActiveTabNode();
+	}
 }
 
 async function onUpdated(tab, info) {
