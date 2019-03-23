@@ -219,7 +219,7 @@ async function tabInterface(queue, browserQueue) {
 	}
 
 	self.setGroupId = async function (tabId, groupId) {
-		if (Number.isInteger(groupId) == false) {
+		if (Number.isInteger(Number(groupId)) == false) {
 			throw new Error(`attempted to set the groupId of tab ${tabId} to ${groupId}`);
 		}
 
