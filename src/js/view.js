@@ -256,7 +256,15 @@ async function onGroupCreated(groupId) {
 	}, WINDOW_ID, groupId);
 
 	setAsNthChild(frag, groupNodes[group.id].content);
-	setGroupVisible(groupId, true);
+
+	var hidden = 0;
+	for (var i = 0; i < group.index; i++) {
+		if (GRPINTERFACE.getByIndex(i).stash == true) {
+			hidden++;
+		}
+	}
+
+	setAsNthChild(groupNodes[group.id].group, view.groupsNode, group.index - hidden);
 	updateTabCountById(groupId);
 }
 

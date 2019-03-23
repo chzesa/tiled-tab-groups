@@ -201,33 +201,6 @@ async function fillGroupNodes() {
 	Selected.requireUpdate();
 }
 
-function setGroupVisible(id, state) {
-	let node = groupNodes[id];
-	if (state) {
-		let nth = 0;
-
-		for (var k in groupNodes) {
-			if (groupNodes[k].group.parentNode == view.stashNode) {
-				continue;
-			}
-
-			if (k < id) {
-				nth++;
-			}
-			else {
-				break;
-			}
-		}
-
-		setAsNthChild(node.group, view.groupsNode, nth);
-	}
-	else {
-		view.stashNode.appendChild(node.group);
-	}
-
-	Selected.requireUpdate();
-}
-
 async function reorderGroup(groupId) {
 	let group = GRPINTERFACE.get(groupId);
 	if (group.stash == true) {
