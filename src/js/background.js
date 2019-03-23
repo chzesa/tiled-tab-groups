@@ -389,7 +389,7 @@ function init() {
 			let view = panoramaTabs[windowId];
 			if (view != null) {
 				if (view.tabId == tabId) {
-					view.onActivated(tabId);
+					await view.onActivated(tabId);
 					return;
 				}
 				else {

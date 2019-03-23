@@ -22,6 +22,7 @@ var WINDOW_ID;
 var TAB_ID;
 var TABINTERFACE;
 var GRPINTERFACE;
+var manager;
 
 var out_of_order_groups = {};
 var tab_count_recount_groups = {};
@@ -31,9 +32,9 @@ var use_indent = false;
 async function initView() {
 	bgPage = browser.extension.getBackgroundPage();
 	view.groupsNode = document.getElementById('groups');
-	view.stashNode = document.getElementById('group-pool');
+	view.stashNode = document.getElementById('pool');
 	pinned = document.getElementById('pinnedTabs');
-	tab_node_pool_anchor = document.getElementById('tab-pool');
+	tab_node_pool_anchor = document.getElementById('pool');
 
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
 	TAB_ID = (await browser.tabs.getCurrent()).id;
@@ -140,6 +141,8 @@ async function initView() {
 
 		return o;
 	});
+
+	manager = newGroupsManager();
 }
 
 document.addEventListener('DOMContentLoaded', initView, false);
@@ -177,8 +180,11 @@ async function onMoved(tabId, moveInfo) {
 	}
 }
 
-function onActivated(tabId) {
-	if (tabId == TAB_ID) setActiveTabNode();
+async function onActivated(tabId) {
+	if (tabId == TAB_ID) {
+		await manager.hide();
+		setActiveTabNode();
+	}
 }
 
 async function onUpdated(tab, info) {
