@@ -1,7 +1,7 @@
 async function groupInterface(windowId) {
 	const self = {};
-	var groups;
-	var array = [];
+	var groups = {};
+	var array;
 	var nextIndex;
 
 	self.save = async function () {
@@ -101,28 +101,47 @@ async function groupInterface(windowId) {
 
 	{
 		nextIndex = await browser.sessions.getWindowValue(windowId, 'groupIndex') || 0;
-		let temp = await browser.sessions.getWindowValue(windowId, 'groups');
+		array = await browser.sessions.getWindowValue(windowId, 'groups') || [];
 
-		if (temp != null) {
-			groups = {};
-			for (var i = 0; i < temp.length; i++) {
-				let grp = temp[i];
-				grp.index = i;
-				groups[grp.id] = grp;
-				array.push(grp);
-			}
+		// Migration is performed here instead of migrate.js in case user restores a window
+		// Any saves since 0.16 should already be arrays
+		if (!Array.isArray(array)) {
+			let temp = [];
+
+			array.forEach(function (group) {
+				temp.push(group);
+			});
+
+			// Ensure groups are ordered in historical order
+			temp.sort(function (a, b) {
+				return a.id - b.id;
+			});
+
+			array = temp;
+			await self.save();
 		}
 
-		if (groups == null) {
-			groups = {};
+		let n = array.length;
+
+		for (var i = 0; i < n; i++) {
+			var group = array[i];
+
+			if (group.index != i) {
+				console.log(`Correcting index of group ${groupId} in window ${windowId}`);
+				group.index = i;
+			}
+
+			groups[group.id] = group;
+		}
+
+		if (n == 0) {
 			await self.new();
 		}
 
-		for (var key in groups) {
-			var group = groups[key];
+		self.forEach(function (group) {
 			group.windowId = windowId;
 			group.tabCount = 0;
-		}
+		});
 	}
 
 	return self;
