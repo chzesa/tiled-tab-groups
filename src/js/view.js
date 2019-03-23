@@ -31,9 +31,9 @@ var use_indent = false;
 async function initView() {
 	bgPage = browser.extension.getBackgroundPage();
 	view.groupsNode = document.getElementById('groups');
-	view.stashNode = document.getElementById('group-pool');
+	view.stashNode = document.getElementById('pool');
 	pinned = document.getElementById('pinnedTabs');
-	tab_node_pool_anchor = document.getElementById('tab-pool');
+	tab_node_pool_anchor = document.getElementById('pool');
 
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
 	TAB_ID = (await browser.tabs.getCurrent()).id;
