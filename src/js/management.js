@@ -53,7 +53,7 @@ function newGroupsManager() {
 	}
 
 	function makeNode(group) {
-		var node = pool.pop();
+		let node = pool.pop();
 
 		if (node != null) {
 			node.update(group);
@@ -62,22 +62,54 @@ function newGroupsManager() {
 
 		node = {};
 
-		node.update = function (group) {
-			this.name.innerHTML = '';
-			this.name.appendChild(document.createTextNode(group.name));
-			setNodeClass(this.elem, `inactive`, group.stash);
-			node.elem.setAttribute('id', group.id);
-		}
-
 		node.name = new_element(`div`, {
 			class: `name`
 			, draggable: 'true'
 		});
 
-		// node.stash = new_element(`div`, {
-		// 	class: 'icon icon-reload'
-		// 	, title: 'Toggle stashed state'
-		// });
+		node.stash = new_element(`div`, {
+			class: 'icon icon-reload'
+			, title: 'Toggle stashed state'
+		});
+
+		node.update = function (group) {
+			this.name.innerHTML = '';
+			this.name.appendChild(document.createTextNode(group.name));
+			this.id = group.id;
+			setNodeClass(this.elem, `inactive`, group.stash);
+			node.elem.setAttribute('id', group.id);
+
+			if (group.stash == true) {
+				setNodeClass(this.stash, 'icon-stash', false);
+				setNodeClass(this.stash, 'icon-unstash', true);
+			}
+			else {
+				setNodeClass(this.stash, 'icon-stash', true);
+				setNodeClass(this.stash, 'icon-unstash', false);
+			}
+		}
+
+		node.stash.addEventListener('click', async function (event) {
+			let group = GRPINTERFACE.get(node.id);
+
+			if (group.stash == false) {
+				var groupUnloaded = true;
+				await TABINTERFACE.forEach(function (tab) {
+					if (!tab.discarded && !tab.pinned) {
+						groupUnloaded = false;
+					}
+				}, WINDOW_ID, group.id);
+
+				if (!groupUnloaded && !window.confirm(`Stash group ${group.name}?\n`)) {
+					return;
+				}
+			}
+
+			bgPage.enqueueTask(async function () {
+				await bgPage.setStash(WINDOW_ID, group.id, !group.stash, true);
+				node.update(group);
+			});
+		});
 
 		// node.close = new_element(`div`, {
 		// 	class: 'icon icon-close'
@@ -87,8 +119,7 @@ function newGroupsManager() {
 		node.elem = new_element(`div`, {
 			class: 'tab'
 			, style: 'cursor:default'
-		}, [node.name]);
-		// }, [node.name, node.stash, node.close]);
+		}, [node.name, node.stash]);
 
 		node.elem.addEventListener('dragstart', dragStart, false);
 		node.elem.addEventListener('dragend', dragEnd, false);
