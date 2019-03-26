@@ -149,7 +149,7 @@ async function groupInterface(windowId) {
 			var group = array[i];
 
 			if (group.index != i) {
-				console.log(`Correcting index of group ${groupId} in window ${windowId}`);
+				console.log(`Correcting index of group ${group.id} in window ${windowId}`);
 				group.index = i;
 			}
 
