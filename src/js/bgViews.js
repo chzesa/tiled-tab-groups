@@ -2,7 +2,7 @@ var panoramaTabs = [];
 var panoramaViewUrl;
 
 async function registerView(view) {
-	return new Promise(function (res, rej) {
+	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
 			if (TABINTERFACE == null) {
 				QUEUE.do(null, attemptResolve);
@@ -25,14 +25,16 @@ async function registerView(view) {
 			res(TABINTERFACE);
 		}
 
-		while (QUEUE == null) {}
+		while (QUEUE == null) {
+			await wait(50);
+		}
 
 		QUEUE.do(null, attemptResolve);
 	});
 }
 
 function registerPopup() {
-	return new Promise(function (res, rej) {
+	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
 			if (TABINTERFACE == null) {
 				QUEUE.do(null, attemptResolve);
@@ -41,7 +43,9 @@ function registerPopup() {
 			res(TABINTERFACE);
 		}
 
-		while (QUEUE == null) {}
+		while (QUEUE == null) {
+			await wait(50);
+		}
 
 		QUEUE.do(null, attemptResolve);
 	});
