@@ -57,7 +57,7 @@ function tabContextMenuAction(info, tab) {
 		await TABINTERFACE.setGroupId(tab.id, groupId);
 
 		if (tab.active) {
-			await TABINTERFACE.update(windowId);
+			await TABINTERFACE.setActiveGroup(windowId, groupId);
 		}
 
 		let view = panoramaTabs[tab.windowId];
