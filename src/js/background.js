@@ -334,7 +334,7 @@ async function reinit() {
 	panoramaTabs = [];
 	await removePanoramaViewTabs();
 	await groupOrphans();
-	await updateCatchRules();
+	await TABINTERFACE.forEachWindow(updateCatchRules);
 }
 
 function init() {

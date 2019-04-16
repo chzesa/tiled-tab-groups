@@ -210,11 +210,8 @@ async function saveRules() {
 		}
 	}
 
-	await browser.storage.local.set({
-		"rules": rules
-	});
-
-	bgPage.enqueueTask(bgPage.updateCatchRules);
+	await browser.sessions.setWindowValue(WINDOW_ID, 'rules', rules);
+	bgPage.enqueueTask(bgPage.updateCatchRules, WINDOW_ID);
 }
 
 async function makeRuleNode(i, regexMode) {
@@ -629,10 +626,8 @@ async function init() {
 		newRule("");
 	});
 
-	browser.storage.local.get().then(async function (config) {
-		rules = config.rules;
-		await updateRules();
-	});
+	rules = (await browser.sessions.getWindowValue(WINDOW_ID, 'rules')) || [];
+	await updateRules();
 
 	document.getElementById('run-tab-catch').addEventListener('click', function () {
 		bgPage.enqueueTask(async function () {

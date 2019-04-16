@@ -10,16 +10,16 @@ async function onWebNavigation(nav) {
 	catch (e) {}
 }
 
-async function updateCatchRules() {
+async function updateCatchRules(windowId) {
 	let rules;
 	let regexMode;
 
 	await browser.storage.local.get().then(function (v) {
-		rules = v.rules || [];
 		regexMode = v.regex_over_wildcard;
 	});
 
-	tab_catch_rules = [];
+	rules = (await browser.sessions.getWindowValue(windowId, 'rules')) || [];
+	let newRules = [];
 
 	for (let i = 0; i < rules.length; i++) {
 		let rule = rules[i];
@@ -39,28 +39,41 @@ async function updateCatchRules() {
 		}
 
 		let o = {};
-		o.regex = new RegExp(rule.regex, 'i')
+		o.regex = new RegExp(rule.regex, 'i');
 		o.matchUrl = rule.matchUrl;
 		o.matchTitle = rule.matchTitle;
 		o.targetId = rule.targetId;
 
-		tab_catch_rules.push(o);
+		newRules.push(o);
 	}
 
-	if (rules.length > 0 && !webNavigationListener) {
+	if (newRules.length > 0 && !webNavigationListener) {
 		browser.webNavigation.onCompleted.addListener(onWebNavigation);
 		webNavigationListener = true;
 	}
 
-	if (rules.length == 0 && webNavigationListener) {
+	tab_catch_rules[windowId] = newRules;
+
+	let disable = true;
+
+	for (let array in tab_catch_rules) {
+		if (array.length > 0) {
+			disable = false;
+			break;
+		}
+	}
+
+	if (disable && webNavigationListener) {
 		browser.webNavigation.onCompleted.removeListener(onWebNavigation);
 		webNavigationListener = false;
 	}
 }
 
 async function tabCatch(tab) {
-	for (let i = 0; i < tab_catch_rules.length; i++) {
-		let rule = tab_catch_rules[i];
+	let rules = tab_catch_rules[tab.windowId] || [];
+
+	for (let i = 0; i < rules.length; i++) {
+		let rule = rules[i];
 		let rx = rule.regex;
 
 		if (rule.matchUrl && !rx.test(tab.url)) {
@@ -78,15 +91,14 @@ async function tabCatch(tab) {
 			continue;
 		}
 
-		if (tab.windowId == group.windowId) {
-			QUEUE.do(null, async function () {
-				await TABINTERFACE.setGroupId(tab.id, group.id);
-				let view = panoramaTabs[tab.windowId];
-				if (view != null) {
-					await view.reorderGroup(group.id);
-				}
-			});
-		}
+		QUEUE.do(null, async function () {
+			await TABINTERFACE.setGroupId(tab.id, group.id);
+			let view = panoramaTabs[tab.windowId];
+			if (view != null) {
+				await view.reorderGroup(group.id);
+			}
+		});
+
 		break;
 	}
 }
