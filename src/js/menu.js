@@ -1,58 +1,53 @@
-const contextMenuIds = [];
-
-const menuGroupState = {
-	active: 0
-	, deleted: 1
-};
-
-async function createContextMenuItem(group) {
-	let id = group.id;
-	contextMenuIds[id] = menuGroupState.active;
-
-	let params = {
-		id: `${id}`
-		, title: `${group.name}`
-		, parentId: "root"
-	};
-
-	browser.menus.create(params);
-}
+const menus = [];
 
 function updateContextMenu(windowId) {
-	for (let i in contextMenuIds) {
-		contextMenuIds[i] = menuGroupState.deleted;
-	}
-
 	let grpIfc = TABINTERFACE.getGroupInterface(windowId);
+	let id = 0;
 
 	grpIfc.forEach(function (group) {
-		let id = group.id;
-		if (contextMenuIds[id] == null) {
-			createContextMenuItem(group);
+		if (menus[id] == null) {
+			menus[id] = {
+				windowId
+				, groupId: group.id
+			};
+
+			browser.menus.create({
+				id: `${id}`
+				, title: group.name
+				, parentId: "root"
+			});
+		} else {
+			menus[id] = {
+				windowId
+				, groupId: group.id
+			}
+
+			browser.menus.update(`${id}`, {
+				visible: true
+				, title: group.name
+			});
 		}
-		else {
-			contextMenuIds[id] = menuGroupState.active;
-			let params = [`${id}`, {
-				title: `${group.name}`
-			}];
-			browser.menus.update(...params);
-		}
+
+		id++;
 	});
 
-	for (let i in contextMenuIds) {
-		if (contextMenuIds[i] == menuGroupState.deleted) {
-			browser.menus.remove(i);
-		}
+	for (var i = id; i < menus.length; i++) {
+		browser.menus.update(`${i}`, {
+			visible: false
+		});
 	}
 }
 
 function tabContextMenuAction(info, tab) {
 	QUEUE.do(null, async function () {
-		let groupId = info.menuItemId;
-		if (groupId == "newGroup") {
+		let groupId;
+
+		if (info.menuItemId == "newGroup") {
 			let ifc = TABINTERFACE.getGroupInterface(tab.windowId);
 			let group = await ifc.new();
 			groupId = group.id;
+		} else {
+			groupId = menus[info.menuItemId].groupId;
 		}
 
 		let windowId = tab.windowId;
