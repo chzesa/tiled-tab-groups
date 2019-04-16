@@ -321,15 +321,6 @@ function getView(windowId) {
 	return panoramaTabs[windowId];
 }
 
-async function handleMessage(request, sender, sendResponse) {
-	switch (request.message) {
-	case MSG_UPDATE_CATCH_RULES:
-		await updateCatchRules();
-		break;
-	}
-
-}
-
 async function reinit() {
 	panoramaTabs = [];
 	await removePanoramaViewTabs();
