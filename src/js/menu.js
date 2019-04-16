@@ -49,6 +49,12 @@ function updateContextMenu(windowId) {
 function tabContextMenuAction(info, tab) {
 	QUEUE.do(null, async function () {
 		let groupId = info.menuItemId;
+		if (groupId == "newGroup") {
+			let ifc = TABINTERFACE.getGroupInterface(tab.windowId);
+			let group = await ifc.new();
+			groupId = group.id;
+		}
+
 		let windowId = tab.windowId;
 		if (TABINTERFACE.getGroup(windowId, groupId).stash) {
 			await setStash(windowId, groupId, false, true);
@@ -105,6 +111,17 @@ async function createPanoramaContextMenu() {
 
 		await browser.menus.create(entry);
 	}
+
+	await browser.menus.create({
+		id: "newGroup"
+		, title: "New group"
+		, parentId: "root"
+	});
+
+	await browser.menus.create({
+		type: "separator"
+		, parentId: "root"
+	});
 }
 
 async function initContextMenu() {
