@@ -343,7 +343,7 @@ async function tabInterface(queue, browserQueue) {
 		let promises = [];
 
 		for (var key in windows) {
-			promises.push(callback(key));
+			promises.push(callback(Number(key)));
 		}
 
 		await Promise.all(promises);
