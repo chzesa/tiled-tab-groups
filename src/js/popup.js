@@ -41,7 +41,7 @@ async function init() {
 		, title: "Reinitialize Tiled Tab Groups. This fixes most issues without having to restart the browser."
 	});
 
-	settings.addEventListener('click', function (event) {
+	settings.addEventListener('click', async function (event) {
 		event.stopPropagation();
 		let view = bgPage.getView(WINDOW_ID);
 		if (view != null) {
@@ -55,7 +55,7 @@ async function init() {
 			}
 		}
 		else {
-			bgPage.enqueueTask(bgPage.openView, WINDOW_ID);
+			await bgPage.enqueueTask(bgPage.openView, WINDOW_ID);
 		}
 		window.close();
 	});
@@ -68,17 +68,18 @@ async function init() {
 
 	await Promise.all(promises);
 
-	document.addEventListener('keypress', (event) => {
+	document.addEventListener('keypress', async function(event) {
 		let num = Number(event.key);
 
 		if (num == NaN || !numKeyEnabled) {
 			return;
 		}
 
-		bgPage.enqueueTask(async function () {
+		await bgPage.enqueueTask(async function () {
 			await bgPage.switchToGroup(WINDOW_ID, numKeyTargets[num]);
-			window.close();
 		});
+
+		window.close();
 	});
 
 	toolbar.appendChild(settings);
@@ -127,10 +128,11 @@ async function makeGroupNodes() {
 			if (group.stash) {
 				return;
 			}
-			bgPage.enqueueTask(async function () {
+			await bgPage.enqueueTask(async function () {
 				await bgPage.switchToGroup(WINDOW_ID, group.id);
-				window.close();
 			});
+
+			window.close();
 		});
 
 		let groupNode = {
