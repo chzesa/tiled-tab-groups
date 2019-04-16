@@ -314,7 +314,7 @@ async function setStash(windowId, groupId, state, now = false) {
 }
 
 function enqueueTask(task, param = null) {
-	QUEUE.do(param, task);
+	return QUEUE.do(param, task);
 }
 
 function getView(windowId) {
