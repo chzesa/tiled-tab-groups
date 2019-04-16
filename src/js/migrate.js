@@ -17,7 +17,6 @@ async function migrateSettings() {
 		let defaults = {
 			light_theme: true
 			, regex_over_wildcard: false
-			, rules: []
 			, regex_nextId: 0
 			, use_tst_indent: false
 			, use_tst_tree_close: false
@@ -71,6 +70,26 @@ async function migrateSettings() {
 
 	if (olderVersion(config.version, "0.16.0")) {
 		delete config[`use_tst_context`];
+	}
+
+	if (olderVersion(config.version, "0.17.4")) {
+		let original_rules = config.rules || [];
+		delete config.rules;
+
+		let windows = await browser.windows.getAll();
+		let max = windows[0].id;
+		let maxCount = 0;
+
+		for (var k in windows) {
+			var win = windows[k];
+			let a = await browser.sessions.getWindowValue(win.id, 'groups') || [];
+			if (a.length > maxCount) {
+				maxCount = a.length;
+				max = win.id;
+			}
+		}
+
+		await browser.sessions.setWindowValue(max, 'rules', original_rules);
 	}
 
 	if (olderVersion(config.version, "1.0.0")) {
