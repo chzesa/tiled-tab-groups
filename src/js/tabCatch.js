@@ -74,7 +74,8 @@ async function tabCatch(tab) {
 		let group = TABINTERFACE.getGroup(tab.windowId, rule.targetId);
 
 		if (group == null) {
-			break;
+			console.log(`Attempted to target a non-existent group with rule in window ${windowId}`);
+			continue;
 		}
 
 		if (tab.windowId == group.windowId) {
