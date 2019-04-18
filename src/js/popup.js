@@ -36,11 +36,6 @@ async function init() {
 		, title: 'Go to groups view.'
 	});
 
-	let reinit = new_element('div', {
-		class: 'icon icon-loader'
-		, title: "Reinitialize Tiled Tab Groups. This fixes most issues without having to restart the browser."
-	});
-
 	settings.addEventListener('click', async function (event) {
 		event.stopPropagation();
 		let view = bgPage.getView(WINDOW_ID);
@@ -57,12 +52,6 @@ async function init() {
 		else {
 			await bgPage.enqueueTask(bgPage.openView, WINDOW_ID);
 		}
-		window.close();
-	});
-
-	reinit.addEventListener('click', function (event) {
-		event.stopPropagation();
-		// commsReinit();
 		window.close();
 	});
 
@@ -83,7 +72,6 @@ async function init() {
 	});
 
 	toolbar.appendChild(settings);
-	toolbar.appendChild(reinit);
 	groupsHolder = document.getElementById('groups');
 	stashHolder = document.getElementById('stash');
 	stashTitle = document.getElementById('stash-title');
