@@ -217,20 +217,21 @@ async function updateIndentTst(tabId) {
 
 	let depth = 0;
 
-	setTimeout(async function () {
-		try {
-			const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
-			var info = await browser.runtime.sendMessage(kTST_ID, {
-				type: 'get-tree'
-				, tab: tabId
-			});
+	await wait(500);
 
-			depth = info.ancestorTabIds.length || 0;
-		}
-		catch (e) {
-			console.log(e);
-		}
-	}, 500);
+	try {
+		console.log(`fetching info for ${tabId}`);
+		const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
+		var info = await browser.runtime.sendMessage(kTST_ID, {
+			type: 'get-tree'
+			, tab: tabId
+		});
+
+		depth = info.ancestorTabIds.length || 0;
+	}
+	catch (e) {
+		console.log(e);
+	}
 
 	if (depth > 0 &&
 		TABINTERFACE.getGroupId(tabId) != TABINTERFACE.getGroupId(info.ancestorTabIds[0])) {
