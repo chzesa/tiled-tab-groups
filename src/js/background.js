@@ -4,6 +4,28 @@ var TABINTERFACE;
 var QUEUE;
 var BROWSERQUEUE;
 
+var selectionSourceWindowId;
+
+function setSelectionSourceWindow(windowId) {
+	selectionSourceWindowId = windowId;
+}
+function getSelectionSourceWindow() {
+	return selectionSourceWindowId;
+}
+
+function getSelectionFromSourceWindow() {
+	let view = panoramaTabs[selectionSourceWindowId];
+	if (view != null) {
+		try {
+			return view.getSelection();
+		} catch(e) {
+			console.log(e);
+		}
+	}
+
+	return [];
+}
+
 async function removePanoramaViewTabs() {
 	let tabs = await browser.tabs.query({
 		url: browser.extension.getURL('view.html')
