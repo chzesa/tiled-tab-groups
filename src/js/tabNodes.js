@@ -113,6 +113,7 @@ function partialUpdate(tab, info) {
 	if (info.title != null) {
 		node.name.innerHTML = '';
 		node.name.appendChild(document.createTextNode(tab.title));
+		node.tab.setAttribute('title', tab.title);
 	}
 
 	if (info.favIconUrl != null) {
@@ -135,6 +136,7 @@ function updateTabNode(tab) {
 
 	node.name.innerHTML = '';
 	node.name.appendChild(document.createTextNode(tab.title));
+	node.tab.setAttribute('title', tab.title);
 
 	setNodeClass(node.tab, 'inactive', tab.discarded);
 
