@@ -264,11 +264,11 @@ const Selected = (function () {
 				if (shouldIgnoreElement(event.target)) {
 					return;
 				}
-				if (!event.ctrlKey && clickedOnTab(event.target)) {
+				if (!event.ctrlKey && !event.shiftKey && clickedOnTab(event.target)) {
 					return;
 				}
 
-				if (!event.ctrlKey) {
+				if (!event.ctrlKey && !event.shiftKey) {
 					self.clear();
 				}
 

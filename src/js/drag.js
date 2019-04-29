@@ -6,7 +6,7 @@ var dragCount = 0;
 var dragDropBefore;
 
 function tabDragStart(e) {
-	if (e.ctrlKey) {
+	if (e.ctrlKey || e.shiftKey) {
 		return;
 	}
 
