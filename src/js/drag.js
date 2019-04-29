@@ -29,6 +29,8 @@ function tabDragStart(e) {
 	if (Selected.get().length == 0) {
 		Selected.add(Number(this.getAttribute('tabId')));
 	}
+
+	bgPage.setSelectionSourceWindow(WINDOW_ID);
 }
 
 function tabDragEnter(e) {
@@ -85,10 +87,11 @@ function tabDragOver(e) {
 	return false;
 }
 
-async function moveSelectionToIndex(selection, index) {
+async function moveSelectionToIndex(selection, index, windowId) {
 	try {
 		await browser.tabs.move(selection, {
-			index
+			index,
+			windowId
 		});
 	}
 	catch (e) {
@@ -96,9 +99,9 @@ async function moveSelectionToIndex(selection, index) {
 		let n = selection.length;
 		for (var i = 0; i < n; i++) {
 			try {
-
 				await browser.tabs.move(selection[i], {
-					index: index + offset
+					index: index + offset,
+					windowId
 				});
 				offset++;
 			}
@@ -119,33 +122,35 @@ function tabDrop(e) {
 		return;
 	}
 
-	var toTabId = Number(dragOverTab.getAttribute('tabId'));
-	let groupId = TABINTERFACE.getGroupId(toTabId);
-
-	var tabId = Number(dragTab.getAttribute('tabId'));
-	let tab = TABINTERFACE.get(tabId);
+	let toTabId = Number(dragOverTab.getAttribute('tabId'));
 	let toTab = TABINTERFACE.get(toTabId);
+	let groupId = TABINTERFACE.getGroupId(toTabId);
+	let toIndex = toTab.index;
 
-	var toIndex = toTab.index;
+	if (bgPage.getSelectionSourceWindow() == WINDOW_ID) {
+		let tabId = Number(dragTab.getAttribute('tabId'));
+		let tab = TABINTERFACE.get(tabId);
 
-	if (tab.index < toIndex) {
-		if (dragDropBefore) {
-			toIndex--;
+		if (tab.index < toIndex) {
+			if (dragDropBefore) {
+				toIndex--;
+			}
 		}
-	}
-	else {
-		if (!dragDropBefore) {
-			toIndex++;
+		else {
+			if (!dragDropBefore) {
+				toIndex++;
+			}
 		}
+	} else {
+		toIndex = !dragDropBefore ? toIndex++ : toIndex;
 	}
-
-	let selection = Selected.get();
-	Selected.clear();
 
 	bgPage.enqueueTask(async function () {
-		await TABINTERFACE.setGroupId(selection, groupId);
-		await reorderGroup(groupId);
-		await moveSelectionToIndex(selection, toIndex);
+		let selection = bgPage.getSelectionFromSourceWindow();
+		await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
+		await moveSelectionToIndex(selection, toIndex, WINDOW_ID);
+	}).then(() => {
+		bgPage.enqueueTask(reorderGroup, groupId);
 	});
 }
 
@@ -157,34 +162,32 @@ function groupDragOver(e) {
 	return false;
 }
 
-function groupDrop(e) {
+async function groupDrop(e) {
 	e.stopPropagation();
-	var groupId = Number(this.getAttribute('groupId'));
+	let groupId = Number(this.getAttribute('groupId'));
 
-	bgPage.enqueueTask(async function () {
-		let selection = Selected.get();
-		Selected.clear();
-		await TABINTERFACE.setGroupId(selection, groupId);
-		await reorderGroup(groupId);
-		await bgPage.tryBrowserArrayOperation(selection
-			, browser.tabs.move, -1);
+	await bgPage.enqueueTask(async function () {
+		let selection = bgPage.getSelectionFromSourceWindow();
+		await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
+		await moveSelectionToIndex(selection, -1, WINDOW_ID);
 	});
 
+	bgPage.enqueueTask(reorderGroup, groupId);
 	return false;
 }
 
-function outsideDrop(e) {
+async function outsideDrop(e) {
 	e.stopPropagation();
+	let group = await GRPINTERFACE.new();
 
-	bgPage.enqueueTask(async function () {
-		let selection = Selected.get();
-		Selected.clear();
-		let group = await GRPINTERFACE.new();
+	await bgPage.enqueueTask(async function () {
+		let selection = bgPage.getSelectionFromSourceWindow();
 		await onGroupCreated(group.id);
-		await TABINTERFACE.setGroupId(selection, group.id);
-		await reorderGroup(group.id);
+		await TABINTERFACE.setGroupId(selection, group.id, WINDOW_ID);
+		await moveSelectionToIndex(selection, -1, WINDOW_ID);
 	});
 
+	bgPage.enqueueTask(reorderGroup, group.id);
 	return false;
 }
 
