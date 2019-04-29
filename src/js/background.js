@@ -453,7 +453,7 @@ function init() {
 			tab = TABINTERFACE.get(tabId);
 			view = panoramaTabs[tab.windowId];
 			if (view != null) {
-				await view.onCreated(tabId, tab.groupId);
+				await view.onCreated(tab, tab.groupId);
 			}
 		});
 	});
