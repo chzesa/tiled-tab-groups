@@ -218,17 +218,19 @@ async function tabInterface(queue, browserQueue) {
 		return swapTabObject(oldTab, tab);
 	}
 
-	self.setGroupId = async function (tabId, groupId) {
+	self.setGroupId = async function (tabId, groupId, windowId = null) {
 		if (Number.isInteger(Number(groupId)) == false) {
 			throw new Error(`attempted to set the groupId of tab ${tabId} to ${groupId}`);
 		}
 
-		let referenceTab = Array.isArray(tabId) ? tabs[tabId[0]] : tabs[tabId];
-		if (referenceTab == null) {
-			throw new Error(`null reference tab, tabId ${tabId}, groupId ${groupId}`);
-		}
+		if (windowId == null) {
+			let referenceTab = Array.isArray(tabId) ? tabs[tabId[0]] : tabs[tabId];
+			if (referenceTab == null) {
+				throw new Error(`null reference tab, tabId ${tabId}, groupId ${groupId}`);
+			}
 
-		let windowId = referenceTab.windowId;
+			windowId = referenceTab.windowId;
+		}
 
 		if (groupId == null || groupId >= 0 &&
 			(groups[windowId] == null || groups[windowId].get(groupId) == null)) {
