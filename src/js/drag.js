@@ -110,6 +110,26 @@ async function moveSelectionToIndex(selection, index, windowId) {
 	}
 }
 
+function moveTabsToGroup(groupId, index) {
+	if (bgPage.getSelectionSourceWindow() == WINDOW_ID) {
+		bgPage.enqueueTask(async function () {
+			let selection = Selected.get();
+			Selected.clear();
+			await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
+			await moveSelectionToIndex(selection, index, WINDOW_ID);
+			await reorderGroup(groupId);
+		});
+	} else {
+		bgPage.enqueueTask(async function () {
+			let selection = bgPage.getSelectionFromSourceWindow();
+			await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
+			await moveSelectionToIndex(selection, index, WINDOW_ID);
+		}).then(function() {
+			bgPage.enqueueTask(reorderGroup, groupId);
+		});
+	}
+}
+
 function tabDrop(e) {
 	e.stopPropagation();
 
@@ -144,14 +164,7 @@ function tabDrop(e) {
 	} else {
 		toIndex = !dragDropBefore ? toIndex++ : toIndex;
 	}
-
-	bgPage.enqueueTask(async function () {
-		let selection = bgPage.getSelectionFromSourceWindow();
-		await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
-		await moveSelectionToIndex(selection, toIndex, WINDOW_ID);
-	}).then(() => {
-		bgPage.enqueueTask(reorderGroup, groupId);
-	});
+	moveTabsToGroup(groupId, toIndex);
 }
 
 function groupDragOver(e) {
@@ -165,29 +178,16 @@ function groupDragOver(e) {
 async function groupDrop(e) {
 	e.stopPropagation();
 	let groupId = Number(this.getAttribute('groupId'));
-
-	await bgPage.enqueueTask(async function () {
-		let selection = bgPage.getSelectionFromSourceWindow();
-		await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
-		await moveSelectionToIndex(selection, -1, WINDOW_ID);
-	});
-
-	bgPage.enqueueTask(reorderGroup, groupId);
+	moveTabsToGroup(groupId, -1);
 	return false;
 }
 
 async function outsideDrop(e) {
 	e.stopPropagation();
 	let group = await GRPINTERFACE.new();
+	await onGroupCreated(group.id);
+	moveTabsToGroup(group.id, -1);
 
-	await bgPage.enqueueTask(async function () {
-		let selection = bgPage.getSelectionFromSourceWindow();
-		await onGroupCreated(group.id);
-		await TABINTERFACE.setGroupId(selection, group.id, WINDOW_ID);
-		await moveSelectionToIndex(selection, -1, WINDOW_ID);
-	});
-
-	bgPage.enqueueTask(reorderGroup, group.id);
 	return false;
 }
 
