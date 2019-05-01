@@ -394,7 +394,7 @@ function init() {
 			let tabId = info.tabId;
 			let windowId = info.windowId;
 
-			TABINTERFACE.onActivated(tabId);
+			let tab = TABINTERFACE.onActivated(tabId);
 
 			let view = panoramaTabs[windowId];
 			if (view != null) {
@@ -406,6 +406,8 @@ function init() {
 					browser.tabs.hide(view.tabId);
 				}
 			}
+
+			if (tab.pinned == true) return;
 
 			let groupId = TABINTERFACE.getGroupId(tabId);
 			if (groupId == -1) return;
