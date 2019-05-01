@@ -279,8 +279,8 @@ async function tabInterface(queue, browserQueue) {
 				await browser.sessions.setTabValue(tab.id
 					, 'groupId', groupId);
 			});
-
-			await updateTab(tabId);
+			if (tab.active) await self.update(tab.windowId)
+			else await updateTab(tabId);
 		}
 	}
 
