@@ -210,12 +210,24 @@ async function tabInterface(queue, browserQueue) {
 		if (tab != null) {
 			tab.discarded = false;
 		}
+		return tab;
 	}
 
-	self.onUpdated = function (tab) {
+	self.onUpdated = async function (tab, info) {
 		let oldTab = tabs[tab.id];
 		if (oldTab == null) return;
-		return swapTabObject(oldTab, tab);
+		tab = swapTabObject(oldTab, tab);
+
+		if ('pinned' in info && tab.pinned == false) {
+			if (tab.active){
+				let groupId = self.getGroupId(tab.id);
+				await self.setActiveGroup(tab.windowId, groupId);
+			} else {
+				await updateTab(tab.id);
+			}
+		}
+
+		return tab;
 	}
 
 	self.setGroupId = async function (tabId, groupId, windowId = null) {

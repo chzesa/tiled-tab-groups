@@ -436,7 +436,7 @@ function init() {
 		QUEUE.do(null, async function () {
 			let windowId = tab.windowId;
 
-			tab = TABINTERFACE.onUpdated(tab);
+			tab = await TABINTERFACE.onUpdated(tab, info);
 			if (tab == null) return;
 
 			let view = panoramaTabs[tab.windowId];
