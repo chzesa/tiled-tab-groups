@@ -223,6 +223,8 @@ async function tabInterface(queue, browserQueue) {
 			throw new Error(`attempted to set the groupId of tab ${tabId} to ${groupId}`);
 		}
 
+		if (Array.isArray(tabId) && tabId.length == 0) return;
+
 		if (windowId == null) {
 			let referenceTab = Array.isArray(tabId) ? tabs[tabId[0]] : tabs[tabId];
 			if (referenceTab == null) {
