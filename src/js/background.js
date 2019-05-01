@@ -273,10 +273,7 @@ function deleteGroup(windowId, groupId) {
 			}
 		}, windowId, groupId);
 
-		let n = regroup.length;
-		for (var i = 0; i < n; i++) {
-			await TABINTERFACE.setGroupId(regroup[i].id, collectId);
-		}
+		await TABINTERFACE.setGroupId(regroup, collectId);
 
 		await TABINTERFACE.setActiveGroup(windowId, collectId);
 		await tryBrowserArrayOperation(close, browser.tabs.remove);
