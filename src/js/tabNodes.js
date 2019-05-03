@@ -54,6 +54,7 @@ function makeTabNode(tab) {
 		node.addEventListener('dragend', tabDragEnd, false);
 
 		node.addEventListener('click', async function (event) {
+			if (event.ctrlKey || event.shiftKey) return;
 			event.preventDefault();
 			event.stopPropagation();
 			try {
