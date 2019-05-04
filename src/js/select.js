@@ -97,32 +97,6 @@ const Selected = (function () {
 		}
 
 		nextSelection = {};
-
-		// if (multiselect_api_enabled) {
-		// 	let sel = self.get();
-		// 	let current_win_id = await browser.windows.getCurrent().id;
-		// 	let return_to = (await browser.tabs.query({
-		// 		active: true
-		// 		, windowId: current_win_id
-		// 	}))[0];
-
-		// 	for (i in sel) {
-		// 		console.log(`shifting ${sel[i]}`);
-		// 		if (sel[i] > return_to.id) {
-		// 			console.log(`shifting ${sel[i]}`);
-		// 			sel[i] = sel[i] - 1;
-		// 		}
-		// 	}
-
-		// 	browser.tabs.highlight({
-		// 		windowId: current_win_id
-		// 		, tabs: sel
-		// 	}).then(_ => {
-		// 		browser.tabs.update(return_to.id, {
-		// 			active: true
-		// 		});
-		// 	});
-		// }
 	}
 
 	let clickedOnTab = (pElement) => {
@@ -234,17 +208,6 @@ const Selected = (function () {
 	self.clear = () => {
 		selection = {};
 		updateSelectionItemVisual();
-
-		// if (multiselect_api_enabled) {
-		// 	browser.tabs.query({
-		// 		currentWindow: true
-		// 	}).then(tabs => {
-		// 		for (i in tabs) {
-		// 			let tab = tabs[i];
-		// 			tab.highlighted = false;
-		// 		}
-		// 	});
-		// }
 	}
 
 	self.init = (callback) => {

@@ -5,7 +5,6 @@ var use_tst_indent = false;
 var use_tst_move = false;
 var use_tst_tree_close = false;
 var use_ftt;
-// var multiselect_api_enabled = false;
 
 var view = {
 	windowId: -1
@@ -73,7 +72,6 @@ async function initView() {
 			use_tst_move = pValue.use_tst_move || false;
 			use_tst_tree_close = pValue.use_tst_tree_close || false;
 			use_ftt = pValue.ftt || false;
-			// multiselect_api_enabled = pValue.multiselect_api_enabled || false;
 			if (pValue.light_theme) {
 				appendCSSFile('css/color-light.css');
 			}

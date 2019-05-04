@@ -614,7 +614,6 @@ async function init() {
 	initCheckboxWithId('ftt', 'ftt');
 	// initCheckboxWithId('tst_move', 'use_tst_move');
 	initCheckboxWithId('numKey', 'use_panel_numkey');
-	// initCheckboxWithId('multisel_api', 'multiselect_api_enabled');
 
 	initCheckboxWithId('regex_over_wildcard', 'regex_over_wildcard', updateRules);
 
