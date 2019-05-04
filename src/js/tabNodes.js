@@ -190,58 +190,47 @@ async function setActiveTabNode() {
 }
 
 async function updateIndentFtt(tabId) {
-	let node = tabNodes[tabId];
-	if (node == null) return;
-	let depth = 0;
+	if (tabNodes[tabId] == null) return;
 	try {
-		var info = await browser.runtime.sendMessage("{8d808887-ed13-4931-9f5a-4c0bff979a5a}", {
+		let info = await browser.runtime.sendMessage("{8d808887-ed13-4931-9f5a-4c0bff979a5a}", {
 			tab: tabId
 		});
-		depth = info.parents.length || 0;
+		updateTabIndent(tabId, info.parents);
 	}
 	catch (e) {
-
-	}
-
-	if (depth > 0 &&
-		TABINTERFACE.getGroupId(tabId) != TABINTERFACE.getGroupId(info.parents[0])) {
-		depth = 0;
-	}
-
-	node = tabNodes[tabId];
-	if (node != null) {
-		node.tab.style.marginLeft = `${depth * 8}px`;
+		console.log(e);
+		updateTabIndent(tabId, []);
 	}
 }
 
 async function updateIndentTst(tabId) {
-	let node = tabNodes[tabId];
-	if (node == null) return;
-
-	let depth = 0;
-
+	if (tabNodes[tabId] == null) return;
 	await wait(500);
 
+	const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
+
 	try {
-		console.log(`fetching info for ${tabId}`);
-		const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
-		var info = await browser.runtime.sendMessage(kTST_ID, {
+		let info = await browser.runtime.sendMessage(kTST_ID, {
 			type: 'get-tree'
 			, tab: tabId
 		});
-
-		depth = info.ancestorTabIds.length || 0;
+		updateTabIndent(tabId, info.ancestorTabIds);
 	}
 	catch (e) {
 		console.log(e);
+		updateTabIndent(tabId, []);
 	}
+}
 
-	if (depth > 0 &&
-		TABINTERFACE.getGroupId(tabId) != TABINTERFACE.getGroupId(info.ancestorTabIds[0])) {
-		depth = 0;
-	}
+function updateTabIndent(tabId, ancestorIds) {
+	let depth = ancestorIds.length;
+	let groupId = TABINTERFACE.getGroupId(tabId);
 
-	node = tabNodes[tabId];
+	ancestorIds.forEach(function (ancestorId) {
+		if (TABINTERFACE.getGroupId(ancestorId) != groupId) depth--;
+	});
+
+	let node = tabNodes[tabId];
 	if (node != null) {
 		node.tab.style.marginLeft = `${depth * 8}px`;
 	}
