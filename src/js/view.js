@@ -6,7 +6,6 @@ var use_tst_move = false;
 var use_tst_tree_close = false;
 var use_ftt;
 // var multiselect_api_enabled = false;
-var cmd_que = newSyncQueue();
 
 var view = {
 	windowId: -1
