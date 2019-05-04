@@ -340,13 +340,6 @@ function getView(windowId) {
 	return panoramaTabs[windowId];
 }
 
-async function reinit() {
-	panoramaTabs = [];
-	await removePanoramaViewTabs();
-	await groupOrphans();
-	await TABINTERFACE.forEachWindow(updateCatchRules);
-}
-
 function init() {
 	QUEUE = newSyncQueue(false);
 
@@ -356,7 +349,11 @@ function init() {
 		panoramaViewUrl = browser.runtime.getURL('view.html');
 
 		TABINTERFACE = await tabInterface(QUEUE, BROWSERQUEUE);
-		await reinit();
+
+		panoramaTabs = [];
+		await removePanoramaViewTabs();
+		await groupOrphans();
+		await TABINTERFACE.forEachWindow(updateCatchRules);
 		await initContextMenu();
 	});
 
