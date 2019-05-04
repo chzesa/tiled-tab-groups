@@ -72,11 +72,15 @@ function makeTabNode(tab) {
 		close.addEventListener('click', async function (event) {
 			event.stopPropagation();
 			if (use_tst_tree_close) {
-				const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
-				await browser.runtime.sendMessage(kTST_ID, {
-					type: 'expand-tree'
-					, tab: tab_object.id
-				});
+				try {
+					const kTST_ID = 'treestyletab@piro.sakura.ne.jp';
+					await browser.runtime.sendMessage(kTST_ID, {
+						type: 'expand-tree'
+						, tab: tab_object.id
+					});
+				} catch(e) {
+					console.log(e);
+				}
 			}
 
 			try {
