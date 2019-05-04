@@ -39,7 +39,7 @@ function updateContextMenu(windowId) {
 }
 
 function tabContextMenuAction(info, tab) {
-	QUEUE.do(null, async function () {
+	QUEUE.do(async function () {
 		let groupId;
 
 		if (info.menuItemId == "newGroup") {

@@ -262,10 +262,10 @@ async function tabInterface(queue, browserQueue) {
 
 				tab.groupId = groupId;
 
-				browserQueue.do(tab, async function (tab) {
+				browserQueue.do(async function (tab) {
 					await browser.sessions.setTabValue(tab.id
 						, 'groupId', groupId);
-				});
+				}, tab);
 			}
 
 			await self.update(windowId);
@@ -275,10 +275,10 @@ async function tabInterface(queue, browserQueue) {
 			if (tab == null || tab.groupId == groupId) return;
 
 			tab.groupId = groupId;
-			browserQueue.do(tab, async function (tab) {
+			browserQueue.do(async function (tab) {
 				await browser.sessions.setTabValue(tab.id
 					, 'groupId', groupId);
-			});
+			}, tab);
 			if (tab.active) await self.update(tab.windowId)
 			else await updateTab(tabId);
 		}
@@ -304,7 +304,7 @@ async function tabInterface(queue, browserQueue) {
 			grpIfc.get(groupId).stash == false) {
 
 			activeGroup[windowId] = groupId;
-			browserQueue.do(null, async function () {
+			browserQueue.do(async function () {
 				await browser.sessions.setWindowValue(windowId, 'activeGroup', groupId);
 			});
 

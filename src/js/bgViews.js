@@ -5,7 +5,7 @@ async function registerView(view) {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
 			if (TABINTERFACE == null) {
-				QUEUE.do(null, attemptResolve);
+				QUEUE.do(attemptResolve);
 				return;
 			}
 
@@ -29,7 +29,7 @@ async function registerView(view) {
 			await wait(50);
 		}
 
-		QUEUE.do(null, attemptResolve);
+		QUEUE.do(attemptResolve);
 	});
 }
 
@@ -37,7 +37,7 @@ function registerPopup() {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
 			if (TABINTERFACE == null) {
-				QUEUE.do(null, attemptResolve);
+				QUEUE.do(attemptResolve);
 				return;
 			}
 			res(TABINTERFACE);
@@ -47,7 +47,7 @@ function registerPopup() {
 			await wait(50);
 		}
 
-		QUEUE.do(null, attemptResolve);
+		QUEUE.do(attemptResolve);
 	});
 }
 

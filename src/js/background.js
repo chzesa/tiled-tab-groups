@@ -187,7 +187,7 @@ async function tryBrowserArrayOperation(array, op, ...param) {
 }
 
 async function unloadGroup(windowId, groupId) {
-	QUEUE.do(null, async function () {
+	QUEUE.do(async function () {
 		let array = [];
 
 		await TABINTERFACE.forEach(function (tab) {
@@ -241,7 +241,7 @@ async function alternativeGroup(windowId, groupId) {
 }
 
 function deleteGroup(windowId, groupId) {
-	QUEUE.do(null, async function () {
+	QUEUE.do(async function () {
 		let grpIfc = TABINTERFACE.getGroupInterface(windowId);
 		if (grpIfc.get(groupId) == null) {
 			return;
@@ -328,12 +328,12 @@ async function setStash(windowId, groupId, state, now = false) {
 		await set();
 	}
 	else {
-		QUEUE.do(null, set);
+		QUEUE.do(set);
 	}
 }
 
-function enqueueTask(task, param = null) {
-	return QUEUE.do(param, task);
+function enqueueTask(task, ...param) {
+	return QUEUE.do(task, ...param);
 }
 
 function getView(windowId) {
@@ -341,9 +341,11 @@ function getView(windowId) {
 }
 
 function init() {
-	QUEUE = newSyncQueue(false);
+	QUEUE = newSyncQueue({
+		enabled: false
+	});
 
-	QUEUE.do(null, async function () {
+	QUEUE.do(async function () {
 		BROWSERQUEUE = newSyncQueue();
 		await migrateSettings();
 		panoramaViewUrl = browser.runtime.getURL('view.html');
@@ -358,7 +360,7 @@ function init() {
 	});
 
 	browser.tabs.onCreated.addListener(function (tab) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			tab = await TABINTERFACE.onCreated(tab);
 
 			let view = panoramaTabs[tab.windowId];
@@ -369,7 +371,7 @@ function init() {
 	});
 
 	browser.tabs.onRemoved.addListener(function (tabId, info) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			let groupId = TABINTERFACE.getGroupId(tabId);
 			TABINTERFACE.onRemoved(tabId, info);
 			let windowId = info.windowId;
@@ -387,7 +389,7 @@ function init() {
 	});
 
 	browser.tabs.onActivated.addListener(function (info) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			let tabId = info.tabId;
 			let windowId = info.windowId;
 
@@ -421,7 +423,7 @@ function init() {
 	});
 
 	browser.tabs.onMoved.addListener(function (tabId, info) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			TABINTERFACE.onMoved(tabId, info);
 
 			let view = panoramaTabs[info.windowId];
@@ -432,7 +434,7 @@ function init() {
 	});
 
 	browser.tabs.onUpdated.addListener(function (tabId, info, tab) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			let windowId = tab.windowId;
 
 			tab = await TABINTERFACE.onUpdated(tab, info);
@@ -457,7 +459,7 @@ function init() {
 	});
 
 	browser.tabs.onAttached.addListener(function (tabId, info) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			let tab = TABINTERFACE.get(tabId);
 			if (tab == null) return;
 
@@ -477,7 +479,7 @@ function init() {
 	});
 
 	browser.commands.onCommand.addListener(async function (command) {
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			switch (command) {
 			case "open-panorama":
 				await openView();

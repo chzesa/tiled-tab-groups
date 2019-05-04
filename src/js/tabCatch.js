@@ -91,7 +91,7 @@ async function tabCatch(tab) {
 			continue;
 		}
 
-		QUEUE.do(null, async function () {
+		QUEUE.do(async function () {
 			await TABINTERFACE.setGroupId(tab.id, group.id);
 			let view = panoramaTabs[tab.windowId];
 			if (view != null) {
