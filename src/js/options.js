@@ -630,7 +630,7 @@ async function init() {
 
 	document.getElementById('run-tab-catch').addEventListener('click', function () {
 		bgPage.enqueueTask(async function () {
-			await bgPage.updateCatchRules();
+			await bgPage.updateCatchRules(WINDOW_ID);
 			await TABINTERFACE.forEach(bgPage.tabCatch);
 		});
 	});
