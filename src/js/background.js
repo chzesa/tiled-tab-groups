@@ -503,14 +503,16 @@ async function onAttached(tab, info) {
 	}
 
 	let groups = await onWindowCreated(tab.windowId);
-	let activeGroup = groups.get(ACTIVEGROUP[tab.windowId]);
-
-	CACHE.setValue(tab.id, 'groupId', activeGroup.id);
-	updateTab(tab.id);
+	if (groups.get(groupId) == null) {
+		let activeGroup = groups.get(ACTIVEGROUP[tab.windowId]);
+		groupId = activeGroup.id;
+		CACHE.setValue(tab.id, 'groupId', groupId);
+		updateTab(tab.id);
+	}
 
 	view = panoramaTabs[tab.windowId];
 	if (view != null) {
-		await view.onCreated(tab, activeGroup.id);
+		await view.onCreated(tab, groupId);
 	}
 }
 
