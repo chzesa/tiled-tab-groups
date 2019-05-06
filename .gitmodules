@@ -1,3 +1,6 @@
 [submodule "js-syncqueue"]
 	path = src/external/js-syncqueue
 	url = https://github.com/chzesa/js-syncqueue
+[submodule "src/js/we-tabcache"]
+	path = src/external/we-tabcache
+	url = https://github.com/chzesa/we-tabcache.git
