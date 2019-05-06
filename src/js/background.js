@@ -106,7 +106,6 @@ async function mostRecentInGroup(windowId, groupId = null) {
 	await CACHE.forEach(function (tab) {
 		ret.push(tab);
 	}, windowId, function(tab) {
-		console.log(`${tab.id}: ${CACHE.getValue(tab.id, 'groupId')} vs ${groupId}`);
 		return groupId == CACHE.getValue(tab.id, 'groupId');
 	});
 
