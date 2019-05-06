@@ -98,7 +98,9 @@ function newGroupsManager() {
 					if (!tab.discarded && !tab.pinned) {
 						groupUnloaded = false;
 					}
-				}, WINDOW_ID, group.id);
+				}, WINDOW_ID, function(tab) {
+					return group.id == TABINTERFACE.getValue(tab.id, 'groupId');
+				});
 
 				if (!groupUnloaded && !window.confirm(`Stash group ${group.name}?\n`)) {
 					return;

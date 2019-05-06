@@ -4,14 +4,14 @@ var panoramaViewUrl;
 async function registerView(view) {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
-			if (TABINTERFACE == null) {
+			if (CACHE == null) {
 				QUEUE.do(attemptResolve);
 				return;
 			}
 
 			let previousView = panoramaTabs[view.windowId];
 			panoramaTabs[view.windowId] = view;
-			await TABINTERFACE.setGroupId(view.tabId, -1);
+			setGroupId(view.tabId, -1);
 
 			try {
 				if (previousView != null && previousView.tabId != view.tabId) {
@@ -22,7 +22,7 @@ async function registerView(view) {
 				console.log(e);
 			}
 
-			res(TABINTERFACE);
+			res(CACHE);
 		}
 
 		while (QUEUE == null) {
@@ -36,11 +36,11 @@ async function registerView(view) {
 function registerPopup() {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
-			if (TABINTERFACE == null) {
+			if (CACHE == null) {
 				QUEUE.do(attemptResolve);
 				return;
 			}
-			res(TABINTERFACE);
+			res(CACHE);
 		}
 
 		while (QUEUE == null) {
@@ -62,7 +62,6 @@ async function openView(windowId = null) {
 			url: "/view.html"
 			, active: true
 		});
-
 		return;
 	}
 

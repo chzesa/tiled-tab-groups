@@ -130,7 +130,11 @@ function makeGroupNode(group) {
 			if (!tab.discarded && !tab.pinned) {
 				groupUnloaded = false;
 			}
-		}, WINDOW_ID, group.id);
+			}, WINDOW_ID,
+			function (tab) {
+				return group.id == TABINTERFACE.getGroupId(tab.id)
+			}
+		);
 
 		if (groupUnloaded || window.confirm(`Stash group ${group.name}?\n` +
 				`Stashed groups can be retrieved from the popup panel.`)) {
@@ -150,7 +154,11 @@ function makeGroupNode(group) {
 			await TABINTERFACE.forEach(async function (tab) {
 				if (tab.pinned) return;
 				browser.tabs.reload(tab.id);
-			}, WINDOW_ID, group.id);
+				}, WINDOW_ID,
+				function (tab) {
+					return group.id == TABINTERFACE.getGroupId(tab.id)
+				}
+			);
 		}
 
 	}, false);
@@ -177,14 +185,15 @@ async function fillGroupNodes() {
 	});
 
 	await TABINTERFACE.forEach(async function (tab) {
-		if (fragment[tab.groupId] == null) return;
+		let groupId = TABINTERFACE.getGroupId(tab.id);
+		if (fragment[groupId] == null) return;
 		makeTabNode(tab);
 
 		if (tab.pinned) {
 			pinFrag.appendChild(tabNodes[tab.id].tab);
 		}
 		else {
-			fragment[tab.groupId].appendChild(tabNodes[tab.id].tab);
+			fragment[groupId].appendChild(tabNodes[tab.id].tab);
 		}
 
 	}, WINDOW_ID);
@@ -219,7 +228,9 @@ async function reorderGroup(groupId) {
 			frag.appendChild(tabNodes[tab.id].tab);
 		}
 
-	}, WINDOW_ID, groupId);
+	}, WINDOW_ID, function(tab) {
+		return groupId == TABINTERFACE.getValue(tab.id, 'groupId');
+	});
 
 	setAsNthChild(frag, groupNodes[groupId].content);
 	updateTabCountById(groupId);

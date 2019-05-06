@@ -84,7 +84,7 @@ async function tabCatch(tab) {
 			continue;
 		}
 
-		let group = TABINTERFACE.getGroup(tab.windowId, rule.targetId);
+		let group = CACHE.getGroup(tab.windowId, rule.targetId);
 
 		if (group == null) {
 			console.log(`Attempted to target a non-existent group with rule in window ${windowId}`);
@@ -92,7 +92,7 @@ async function tabCatch(tab) {
 		}
 
 		QUEUE.do(async function () {
-			await TABINTERFACE.setGroupId(tab.id, group.id);
+			setGroupId(tab.id, group.id);
 			let view = panoramaTabs[tab.windowId];
 			if (view != null) {
 				await view.reorderGroup(group.id);

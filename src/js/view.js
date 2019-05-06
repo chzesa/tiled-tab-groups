@@ -225,7 +225,9 @@ async function onStashed(groupId) {
 	if (GRPINTERFACE.get(groupId).stash == true) {
 		await TABINTERFACE.forEach(function (tab) {
 			deleteTabNode(tab.id);
-		}, WINDOW_ID, groupId);
+		}, WINDOW_ID, function(tab) {
+			return groupId == TABINTERFACE.getGroupId(tab.id);
+		});
 
 		onGroupRemoved(groupId);
 	}
@@ -250,7 +252,9 @@ async function onGroupCreated(groupId) {
 				updateIndent(tab.id);
 			}
 		}
-	}, WINDOW_ID, groupId);
+	}, WINDOW_ID, function(tab) {
+		return groupId == TABINTERFACE.getGroupId(tab.id);
+	});
 
 	setAsNthChild(frag, groupNodes[group.id].content);
 

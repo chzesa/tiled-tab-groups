@@ -1,7 +1,7 @@
 const menus = [];
 
 function updateContextMenu(windowId) {
-	let grpIfc = TABINTERFACE.getGroupInterface(windowId);
+	let grpIfc = WINDOWGROUPS(windowId);
 	let id = 0;
 
 	grpIfc.forEach(function (group) {
@@ -43,7 +43,7 @@ function tabContextMenuAction(info, tab) {
 		let groupId;
 
 		if (info.menuItemId == "newGroup") {
-			let ifc = TABINTERFACE.getGroupInterface(tab.windowId);
+			let ifc = WINDOWGROUPS(tab.windowId);
 			let group = await ifc.new();
 			groupId = group.id;
 		} else {
@@ -51,14 +51,14 @@ function tabContextMenuAction(info, tab) {
 		}
 
 		let windowId = tab.windowId;
-		if (TABINTERFACE.getGroup(windowId, groupId).stash) {
+		if (CACHE.getGroup(windowId, groupId).stash) {
 			await setStash(windowId, groupId, false, true);
 		}
 
-		await TABINTERFACE.setGroupId(tab.id, groupId);
+		setGroupId(tab.id, groupId);
 
 		if (tab.active) {
-			await TABINTERFACE.setActiveGroup(windowId, groupId);
+			setActiveGroup(windowId, groupId);
 		}
 
 		let view = panoramaTabs[tab.windowId];
