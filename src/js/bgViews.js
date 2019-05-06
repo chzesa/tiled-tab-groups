@@ -95,7 +95,7 @@ async function openView(windowId = null) {
 	}
 
 	try {
-		browser.tabs.update(view.tabId, {
+		await browser.tabs.update(view.tabId, {
 			active: true
 		});
 	}
