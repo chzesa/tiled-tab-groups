@@ -48,11 +48,6 @@ function makeGroupNode(group) {
 		class: 'scroll_padding'
 	});
 
-	let ignoreAttrib = [input, reload, unload, stash, close, newtab];
-	for (let i in ignoreAttrib) {
-		ignoreAttrib[i].setAttribute('ignore', 't');
-	}
-
 	var content = new_element('div', {}); // tab container
 
 	var content_wrap = new_element('div', {
