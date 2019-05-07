@@ -139,6 +139,8 @@ async function initView() {
 		return o;
 	});
 
+	view.groupsNode.addEventListener('mousedown', Selected.startSelect);
+
 	manager = newGroupsManager();
 }
 

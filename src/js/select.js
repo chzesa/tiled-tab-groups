@@ -67,14 +67,12 @@ const Selected = (function () {
 		selectionBox.style.height = `${h}px`;
 	}
 
-
 	let updateSelectionItemVisual = async () => {
 		for (let id in selectables) {
 			let elem = selectables[id];
 			setNodeClass(elem, 'selection', selection[id]);
 		}
 	}
-
 
 	let onStartSelect = async (event) => {
 		selectStart.x = event.clientX;
@@ -97,44 +95,6 @@ const Selected = (function () {
 		}
 
 		nextSelection = {};
-	}
-
-	let clickedOnTab = (pElement) => {
-		let elem = pElement;
-
-		if (isElementTab(elem)) {
-			return true;
-		}
-		else {
-			while (elem.parentNode != null) {
-				elem = elem.parentNode;
-				if (isElementTab(elem)) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	let shouldIgnoreElement = (pElement) => {
-		if (pElement.getAttribute('ignore') == 't') {
-			return true;
-		}
-
-		return false;
-	}
-
-	let isElementTab = (pElement) => {
-		if (pElement.classList == null) {
-			return false;
-		}
-
-		if (pElement.classList.contains('tab')) {
-			return true;
-		}
-
-		return false;
 	}
 
 	let ensureUpToDate = () => {
@@ -210,6 +170,33 @@ const Selected = (function () {
 		updateSelectionItemVisual();
 	}
 
+	self.startSelect = function(event) {
+		if (event.button != 0) {
+			return;
+		}
+
+		event.stopPropagation();
+
+		if (mouseDown == -1) {
+			if (!event.ctrlKey && !event.shiftKey) {
+				self.clear();
+			}
+
+			ensureUpToDate();
+
+			mouseDown = setInterval(function() {
+				if (lastPointer.x != pointer.x || lastPointer.y != pointer.y) {
+					update();
+					lastPointer.x = pointer.x;
+					lastPointer.y = pointer.y;
+				}
+			}, 17);
+
+			onStartSelect(event);
+			update();
+		}
+	}
+
 	self.init = (callback) => {
 		if (callback != null) {
 			getSelectables = callback;
@@ -218,44 +205,11 @@ const Selected = (function () {
 		selectionBox = document.getElementById('selection-box');
 		selectables = getSelectables();
 
-		document.onmousedown = function (event) {
-			if (event.button != 0) {
-				return;
-			}
-
-			if (mouseDown == -1) {
-				if (shouldIgnoreElement(event.target)) {
-					return;
-				}
-				if (!event.ctrlKey && !event.shiftKey && clickedOnTab(event.target)) {
-					return;
-				}
-
-				if (!event.ctrlKey && !event.shiftKey) {
-					self.clear();
-				}
-
-				ensureUpToDate();
-
-				mouseDown = setInterval(whilemousedown, 17);
-				onStartSelect(event);
-				update();
-			}
-		};
-
 		document.onmouseup = function (event) {
 			if (event.button != 0) {
 				return;
 			}
 			endSelect();
-		}
-
-		function whilemousedown() {
-			if (lastPointer.x != pointer.x || lastPointer.y != pointer.y) {
-				update();
-				lastPointer.x = pointer.x;
-				lastPointer.y = pointer.y;
-			}
 		}
 
 		document.onmousemove = function (event) {

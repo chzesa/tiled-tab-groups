@@ -53,6 +53,14 @@ function makeTabNode(tab) {
 		node.addEventListener('drop', tabDrop, false);
 		node.addEventListener('dragend', tabDragEnd, false);
 
+		node.addEventListener('mousedown', function(event) {
+			if (!event.ctrlKey && !event.shiftKey) {
+				event.stopPropagation();
+				return;
+			}
+			Selected.startSelect(event);
+		});
+
 		node.addEventListener('click', async function (event) {
 			if (event.ctrlKey || event.shiftKey) return;
 			event.preventDefault();
