@@ -15,16 +15,16 @@ const Selected = (function () {
 	let getSelectables = () => [];
 	let selectables_need_update = true;
 
-	let update = async () => {
+	function update () {
 		let x = pointer.x < selectStart.x ? pointer.x : selectStart.x;
 		let y = pointer.y < selectStart.y ? pointer.y : selectStart.y;
 		let w = Math.abs(pointer.x - selectStart.x);
 		let h = Math.abs(pointer.y - selectStart.y);
 		updateSelectionVisual(x, y, w, h);
-		await updateSelection(x, y, w, h);
+		updateSelection(x, y, w, h);
 	}
 
-	let updateSelection = async (x, y, w, h) => {
+	function updateSelection (x, y, w, h) {
 		for (let id in selectables) {
 			let elem = selectables[id];
 
@@ -49,7 +49,7 @@ const Selected = (function () {
 		}
 	}
 
-	let elementVisibleInScrollfield = (elem, scrollfield) => {
+	function elementVisibleInScrollfield (elem, scrollfield) {
 		// Only tests vertical scroll
 		let offset = elem.offsetTop;
 		let scrollTop = scrollfield.scrollTop;
@@ -60,21 +60,21 @@ const Selected = (function () {
 		}
 	}
 
-	let updateSelectionVisual = async (x, y, w, h) => {
+	function updateSelectionVisual (x, y, w, h) {
 		selectionBox.style.left = `${x}px`;
 		selectionBox.style.top = `${y}px`;
 		selectionBox.style.width = `${w}px`;
 		selectionBox.style.height = `${h}px`;
 	}
 
-	let updateSelectionItemVisual = async () => {
+	function updateSelectionItemVisual () {
 		for (let id in selectables) {
 			let elem = selectables[id];
 			setNodeClass(elem, 'selection', selection[id]);
 		}
 	}
 
-	let onStartSelect = async (event) => {
+	function onStartSelect (event) {
 		selectStart.x = event.clientX;
 		selectStart.y = event.clientY;
 		selectionBox.style.left = `${event.clientX}px`;
@@ -82,7 +82,7 @@ const Selected = (function () {
 		selectionBox.style.display = 'initial';
 	}
 
-	let onEndSelect = async () => {
+	function onEndSelect () {
 		selectionBox.style.display = 'none';
 		selectionBox.style.width = `$0px`;
 		selectionBox.style.height = `$0px`;
@@ -97,14 +97,14 @@ const Selected = (function () {
 		nextSelection = {};
 	}
 
-	let ensureUpToDate = () => {
+	function ensureUpToDate () {
 		if (selectables_need_update) {
 			selectables = getSelectables();
 			selectables_need_update = false;
 		}
 	}
 
-	let endSelect = () => {
+	function endSelect () {
 		if (mouseDown != -1) {
 			clearInterval(mouseDown)
 			mouseDown = -1;
@@ -112,7 +112,7 @@ const Selected = (function () {
 		}
 	}
 
-	self.get = () => {
+	self.get = function () {
 		let r = [];
 
 		for (id in selection) {
@@ -126,7 +126,7 @@ const Selected = (function () {
 		return r;
 	}
 
-	self.add = (id) => {
+	self.add = function (id) {
 		ensureUpToDate();
 		let elem = selectables[id];
 		if (elem != null) {
@@ -135,7 +135,7 @@ const Selected = (function () {
 		}
 	}
 
-	self.remove = (id) => {
+	self.remove = function (id) {
 		let elem = selectables[id];
 		if (elem != null) {
 			selection[id] = false;
@@ -143,7 +143,7 @@ const Selected = (function () {
 		}
 	}
 
-	self.removeSelectable = (id) => {
+	self.removeSelectable = function (id) {
 		let elem = selectables[id];
 		if (elem != null) {
 			delete selection[id];
@@ -153,11 +153,11 @@ const Selected = (function () {
 		}
 	}
 
-	self.requireUpdate = () => {
+	self.requireUpdate = function () {
 		selectables_need_update = true;
 	}
 
-	self.print = () => {
+	self.print = function () {
 		let s = self.get();
 
 		for (let id in s) {
@@ -165,7 +165,7 @@ const Selected = (function () {
 		}
 	}
 
-	self.clear = () => {
+	self.clear = function () {
 		selection = {};
 		updateSelectionItemVisual();
 	}
@@ -197,7 +197,7 @@ const Selected = (function () {
 		}
 	}
 
-	self.init = (callback) => {
+	self.init = function (callback) {
 		if (callback != null) {
 			getSelectables = callback;
 		}
