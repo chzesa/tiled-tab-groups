@@ -1,7 +1,7 @@
 const menus = [];
 
 function updateContextMenu(windowId) {
-	let grpIfc = WINDOWGROUPS(windowId);
+	let grpIfc = WINDOWGROUPS[windowId];
 	let id = 0;
 
 	grpIfc.forEach(function (group) {
@@ -43,7 +43,7 @@ function tabContextMenuAction(info, tab) {
 		let groupId;
 
 		if (info.menuItemId == "newGroup") {
-			let ifc = WINDOWGROUPS(tab.windowId);
+			let ifc = WINDOWGROUPS[tab.windowId];
 			let group = await ifc.new();
 			groupId = group.id;
 		} else {
