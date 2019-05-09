@@ -55,9 +55,16 @@ function tabContextMenuAction(info, tab) {
 			await setStash(windowId, groupId, false, true);
 		}
 
-		await TABINTERFACE.setGroupId(tab.id, groupId);
+		if (tab.highlighted) {
+			let highlighted = await browser.tabs.query({highlighted: true, currentWindow: true});
+			highlighted.forEach(async (tab) => {
+				await TABINTERFACE.setGroupId(tab.id, groupId);
+			})
+		} else {
+			await TABINTERFACE.setGroupId(tab.id, groupId);
+		}
 
-		if (tab.active) {
+		if (tab.active || tab.highlighted) {
 			await TABINTERFACE.setActiveGroup(windowId, groupId);
 		}
 
@@ -139,6 +146,15 @@ async function initContextMenu() {
 
 	browser.menus.onShown.addListener(async function (info, tab) {
 		if (info.contexts.includes('tab')) {
+			let menuId = tabContextRoot.id;
+			let highlighted = await browser.tabs.query({highlighted: true, currentWindow: true});
+
+			if (tab.highlighted && highlighted.length > 1) {
+				browser.menus.update(menuId, { title: "Move tabs to group" });
+			} else {
+				browser.menus.update(menuId, { title: "Move tab to group" });
+			}
+
 			updateContextMenu(tab.windowId);
 			browser.menus.refresh();
 		}
