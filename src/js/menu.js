@@ -57,9 +57,8 @@ function tabContextMenuAction(info, tab) {
 
 		if (tab.highlighted) {
 			let highlighted = await browser.tabs.query({highlighted: true, currentWindow: true});
-			highlighted.forEach(async (tab) => {
-				await TABINTERFACE.setGroupId(tab.id, groupId);
-			})
+			let ids = highlighted.map((tab) => tab.id);
+			await TABINTERFACE.setGroupId(ids, groupId, tab.windowId);
 		} else {
 			await TABINTERFACE.setGroupId(tab.id, groupId);
 		}
