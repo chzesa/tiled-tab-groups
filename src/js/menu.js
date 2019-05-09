@@ -55,9 +55,12 @@ function tabContextMenuAction(info, tab) {
 			await setStash(windowId, groupId, false, true);
 		}
 
-		await TABINTERFACE.setGroupId(tab.id, groupId);
+		let highlighted = await browser.tabs.query({highlighted: true, currentWindow: true});
+		highlighted.forEach(async (tab) => {
+			await TABINTERFACE.setGroupId(tab.id, groupId);
+		})
 
-		if (tab.active) {
+		if (tab.active || tab.highlighted) {
 			await TABINTERFACE.setActiveGroup(windowId, groupId);
 		}
 
