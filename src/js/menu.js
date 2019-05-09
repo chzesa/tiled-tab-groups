@@ -1,10 +1,14 @@
 const menus = [];
 
-function updateContextMenu(windowId) {
+function updateContextMenu(tab) {
+	let windowId = tab.windowId;
+	let tabGroupId = CACHE.getValue(tab.id, 'groupId');
 	let grpIfc = WINDOWGROUPS[windowId];
 	let id = 0;
 
 	grpIfc.forEach(function (group) {
+		if (group.id == tabGroupId) return;
+
 		if (menus[id] == null) {
 			menus[id] = {
 				windowId
@@ -31,7 +35,7 @@ function updateContextMenu(windowId) {
 		id++;
 	});
 
-	for (var i = id; i < menus.length; i++) {
+	for (let i = id; i < menus.length; i++) {
 		browser.menus.update(`${i}`, {
 			visible: false
 		});
@@ -139,7 +143,7 @@ async function initContextMenu() {
 
 	browser.menus.onShown.addListener(async function (info, tab) {
 		if (info.contexts.includes('tab')) {
-			updateContextMenu(tab.windowId);
+			updateContextMenu(tab);
 			browser.menus.refresh();
 		}
 	});
