@@ -124,7 +124,8 @@ function partialUpdate(tab, info) {
 	}
 
 	if (info.favIconUrl != null) {
-		if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage) {
+		if (tab.favIconUrl && !tab.favIconUrl.match(/^chrome:\/\//)
+			&& tab.favIconUrl != node.favicon.style.backgroundImage) {
 			node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
 		}
 		else {
@@ -147,7 +148,8 @@ function updateTabNode(tab) {
 
 	setNodeClass(node.tab, 'inactive', tab.discarded);
 
-	if (tab.favIconUrl && tab.favIconUrl != node.favicon.style.backgroundImage) {
+	if (tab.favIconUrl && !tab.favIconUrl.match(/^chrome:\/\//)
+		&& tab.favIconUrl != node.favicon.style.backgroundImage) {
 		node.favicon.style.backgroundImage = `url(${tab.favIconUrl})`;
 	}
 	else {
