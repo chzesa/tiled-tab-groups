@@ -118,15 +118,11 @@ async function makeRuleNode(i, regexMode) {
 		class: 'floatright'
 	}, [edit, save, cancel, del]);
 
-	// var matchLabel = new_element('label', {
-	// 	content: 'Rule'
-	// });
 	var matchRule = new_element('input', {
 		class: 'regex'
 		, type: 'text'
 		, placeholder: regexMode ? 'new regular expression' : 'new wildcard rule'
 		, disabled: true
-		// , value: rule.regex
 		, value: regexMode ? rule.regex : rule.wildcard
 	});
 
@@ -178,7 +174,6 @@ async function makeRuleNode(i, regexMode) {
 	var testUrl = new_element('input', {
 		type: 'checkbox'
 		, disabled: true
-		// , checked: rule.matchUrl
 		, title: 'Check to compare this rule to tab url.'
 	});
 
@@ -191,7 +186,6 @@ async function makeRuleNode(i, regexMode) {
 	var testTitle = new_element('input', {
 		type: 'checkbox'
 		, disabled: true
-		// , checked: rule.matchTitle
 		, title: 'Check to compare this rule to page title.'
 	});
 	testTitle.checked = rule.matchTitle;
@@ -223,7 +217,6 @@ async function makeRuleNode(i, regexMode) {
 		testTitle.disabled = true;
 		target_dropdown.disabled = true;
 
-		// matchRule.value = rule.regex;
 		matchRule.value = regexMode ? rule.regex : rule.wildcard;
 		matchId.value = rule.targetId;
 		testUrl.checked = rule.matchUrl;
@@ -243,7 +236,7 @@ async function makeRuleNode(i, regexMode) {
 			}
 
 			rule.lastEdit = regexMode ? 1 : 2;
-			// rule.targetId = tar;
+
 			rule.matchUrl = testUrl.checked;
 			rule.matchTitle = testTitle.checked;
 
@@ -335,7 +328,6 @@ async function insertShortcutOptions() {
 
 		const title = new_element('span', {
 			class: 'floatleft'
-			// , content: cmd.name
 			, content: commandNames[cmd.name]
 		});
 		const input = new_element('input', {
@@ -396,14 +388,11 @@ async function init() {
 	bgPage = browser.extension.getBackgroundPage();
 	TABINTERFACE = await bgPage.registerPopup();
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
-	//document.getElementById('backupFileInput').addEventListener('change', loadBackup);
-	// document.getElementById('saveBackupButton').addEventListener('click', saveBackup);
 	insertShortcutOptions();
 
 	initCheckboxWithId('tst', 'use_tst_indent');
 	initCheckboxWithId('tst_tree_close', 'use_tst_tree_close');
 	initCheckboxWithId('ftt', 'ftt');
-	// initCheckboxWithId('tst_move', 'use_tst_move');
 	initCheckboxWithId('numKey', 'use_panel_numkey');
 
 	initCheckboxWithId('regex_over_wildcard', 'regex_over_wildcard', updateRules);
