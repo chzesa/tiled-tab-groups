@@ -24,6 +24,11 @@ async function migrateSettings() {
 			, use_panel_numkey: false
 			, panorama_css: ""
 			, popup_css: ""
+			, layout: 0
+			, layout_options: {
+				fixed_width: 256
+				, fixed_columns: 7
+			}
 		}
 
 		for (var key in defaults) {
