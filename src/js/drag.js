@@ -88,6 +88,8 @@ function tabDragOver(e) {
 }
 
 async function moveSelectionToIndex(selection, index, windowId) {
+	selection.sort((a, b) => TABINTERFACE.get(a).index - TABINTERFACE.get(b).index);
+
 	try {
 		await browser.tabs.move(selection, {
 			index,
