@@ -48,7 +48,7 @@ async function removePanoramaViewTabs() {
 			}
 		}
 		if (!b) {
-			promises.push(browser.tabs.remove(tab.id));
+			promises.push(removeViewTab(tab.id));
 		}
 	}
 

@@ -1,6 +1,20 @@
 var panoramaTabs = [];
 var panoramaViewUrl;
 
+async function removeViewTab(id) {
+	try {
+		if (CACHE.get(id).url != panoramaViewUrl) return;
+		CACHE.removeValue(id, 'groupId');
+		await browser.tabs.update(id, {
+			url: `about:blank`
+		});
+
+		await browser.tabs.remove(id);
+	} catch(e) {
+		console.log(e);
+	}
+}
+
 async function registerView(view) {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
@@ -15,7 +29,7 @@ async function registerView(view) {
 
 			try {
 				if (previousView != null && previousView.tabId != view.tabId) {
-					browser.tabs.remove(previousView.tabId);
+					removeViewTab(previousView.tabId);
 				}
 			}
 			catch (e) {
