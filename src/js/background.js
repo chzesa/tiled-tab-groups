@@ -213,6 +213,8 @@ async function alternativeGroup(windowId, groupId) {
 
 	do {
 		group = grpIfc.getByIndex(i);
+		if (group.index < i) return null;
+
 		i++;
 
 		if (group.id == groupId) {
