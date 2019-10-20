@@ -205,7 +205,7 @@ async function fillGroupNodes() {
 	Selected.requireUpdate();
 }
 
-async function reorderGroup(groupId) {
+function reorderGroup(groupId) {
 	let group = GRPINTERFACE.get(groupId);
 	if (group.stash == true) {
 		return;
@@ -213,7 +213,7 @@ async function reorderGroup(groupId) {
 
 	let frag = document.createDocumentFragment();
 
-	await TABINTERFACE.forEach(function (tab) {
+	TABINTERFACE.forEach(function (tab) {
 		if (tabNodes[tab.id] == null) {
 			makeTabNode(tab);
 			updateTabNode(tab.id);
@@ -232,7 +232,7 @@ async function reorderGroup(groupId) {
 	Selected.requireUpdate();
 }
 
-async function insertTab(tab, groupId = null) {
+function insertTab(tab, groupId = null) {
 	if (groupId == undefined) {
 		groupId = TABINTERFACE.getGroupId(tab.id);
 	}
@@ -240,7 +240,7 @@ async function insertTab(tab, groupId = null) {
 	if (groupId != -1) {
 		groupNodes[groupId].content.appendChild(tabNodes[tab.id].tab);
 		updateTabCountById(groupId);
-		await reorderGroup(groupId);
+		reorderGroup(groupId);
 		Selected.requireUpdate();
 	}
 }

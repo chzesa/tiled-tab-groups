@@ -19,7 +19,7 @@ function getSelectionFromSourceWindow() {
 	let view = panoramaTabs[selectionSourceWindowId];
 	if (view != null) {
 		try {
-			return view.getSelection();
+			return view.view.getSelection();
 		} catch(e) {
 			console.log(e);
 		}
@@ -42,7 +42,7 @@ async function removePanoramaViewTabs() {
 
 		let b = false;
 		for (let key in panoramaTabs) {
-			if (panoramaTabs[key] == tab.id) {
+			if (panoramaTabs[key].tabId == tab.id) {
 				b = true;
 				break;
 			}
@@ -286,10 +286,7 @@ function deleteGroup(windowId, groupId) {
 		await tryBrowserArrayOperation(close, browser.tabs.remove);
 		await grpIfc.remove(groupId);
 
-		let view = panoramaTabs[windowId];
-		if (view != null) {
-			await view.onGroupRemoved(groupId);
-		}
+		view(windowId, "onGroupRemoved", groupId);
 	});
 }
 
@@ -326,11 +323,7 @@ async function setStash(windowId, groupId, state, now = false) {
 		}
 
 		await grpIfc.setStash(groupId, state);
-
-		let view = panoramaTabs[windowId];
-		if (view != null) {
-			await view.onStashed(groupId);
-		}
+		view(windowId, "onStashed", groupId);
 	}
 
 	if (now) {
@@ -471,14 +464,14 @@ async function onActivated(tab, info) {
 	let windowId = tab.windowId;
 	let tabId = tab.id;
 
-	let view = panoramaTabs[windowId];
-	if (view != null) {
-		if (view.tabId == tabId) {
-			await view.onActivated(tabId);
+	let pView = panoramaTabs[windowId];
+	if (pView != null) {
+		if (pView.tabId == tabId) {
+			view(windowId, "onActivated", tabId);
 			return;
 		}
 		else {
-			browser.tabs.hide(view.tabId);
+			browser.tabs.hide(pView.tabId);
 		}
 	}
 
@@ -498,11 +491,9 @@ async function onActivated(tab, info) {
 }
 
 async function onAttached(tab, info) {
-	let view = panoramaTabs[info.oldWindowId];
 	let groupId = CACHE.getValue(tab.id, 'groupId');
-	if (view != null) {
-		view.onRemoved(tab.id, groupId);
-	}
+
+	view(info.oldWindowId, "onRemoved", tab.id, groupId);
 
 	let groups = await onWindowCreated(tab.windowId);
 	if (groups.get(groupId) == null) {
@@ -512,10 +503,7 @@ async function onAttached(tab, info) {
 		updateTab(tab.id);
 	}
 
-	view = panoramaTabs[tab.windowId];
-	if (view != null) {
-		await view.onCreated(tab, groupId);
-	}
+	view(tab.windowId, "onCreated", tab, groupId);
 }
 
 async function onCreated(tab) {
@@ -536,32 +524,18 @@ async function onCreated(tab) {
 		updateTab(tab.id);
 	}
 
-	let view = panoramaTabs[windowId];
-	if (view != null) {
-		await view.onCreated(tab, groupId);
-	}
+	view(tab.windowId, "onCreated", tab, groupId);
 }
 
 async function onMoved(tab, info) {
-	let view = panoramaTabs[tab.windowId];
-	if (view != null) {
-		await view.onMoved(tab.id);
-	}
+	view(tab.windowId, "onMoved", tab.id);
 }
 
 async function onRemoved(tab, info, values) {
 	let groupId = values.groupId;
 	let windowId = tab.windowId;
 
-	let view = panoramaTabs[windowId];
-	if (view == null) return;
-
-	if (view.tabId == tab.id) {
-		delete panoramaTabs[windowId];
-	}
-	else {
-		view.onRemoved(tab.id, groupId);
-	}
+	view(windowId, "onRemoved", tab.id, groupId);
 }
 
 async function onUpdated(tab, info) {
@@ -574,14 +548,18 @@ async function onUpdated(tab, info) {
 		}
 	}
 
-	let view = panoramaTabs[tab.windowId];
-	if (view != null) {
-		if (`pinned` in info) {
-			await view.onUpdated(tab, info);
-		}
-		else {
-			view.onUpdated(tab, info);
-		}
+	view(tab.windowId, "onUpdated", tab, info);
+}
+
+function view(windowId, fn, ...param) {
+	let view = panoramaTabs[windowId];
+	if (view == null) return;
+
+	try {
+		view.view[fn](...param);
+	} catch(e) {
+		browser.tabs.remove(view.tabId);
+		delete panoramaTabs[windowId];
 	}
 }
 

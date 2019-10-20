@@ -10,6 +10,7 @@ async function removeViewTab(id) {
 		});
 
 		await browser.tabs.remove(id);
+		delete panoramaTabs[CACHE.get(id).windowId];
 	} catch(e) {
 		console.log(e);
 	}
@@ -24,7 +25,11 @@ async function registerView(view) {
 			}
 
 			let previousView = panoramaTabs[view.windowId];
-			panoramaTabs[view.windowId] = view;
+			panoramaTabs[view.windowId] = {
+				tabId: view.tabId,
+				windowId: view.windowId,
+				view
+			};
 			setGroupId(view.tabId, -1);
 
 			try {

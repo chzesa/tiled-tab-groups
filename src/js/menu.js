@@ -71,17 +71,14 @@ function tabContextMenuAction(info, tab) {
 			setActiveGroup(windowId, groupId);
 		}
 
-		let view = panoramaTabs[tab.windowId];
-		if (view != null) {
-			await view.reorderGroup(groupId);
-		}
+		view(tab.windowId, "reorderGroup", groupId);
 	});
 }
 
 async function panoramaContextMenuAction(info, tab) {
 	let windowId = (await browser.windows.getCurrent()).id;
 
-	let selected = panoramaTabs[windowId].getSelection();
+	let selected = panoramaTabs[windowId].view.getSelection();
 
 	switch (info.menuItemId) {
 	case 'reload':

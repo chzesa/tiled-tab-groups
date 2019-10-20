@@ -95,7 +95,7 @@ async function tabCatch(tab) {
 			setGroupId(tab.id, group.id);
 			let view = panoramaTabs[tab.windowId];
 			if (view != null) {
-				await view.reorderGroup(group.id);
+				view.reorderGroup(group.id);
 			}
 		});
 

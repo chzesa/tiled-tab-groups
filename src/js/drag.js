@@ -119,7 +119,7 @@ function moveTabsToGroup(groupId, index) {
 			Selected.clear();
 			await TABINTERFACE.setGroupId(selection, groupId, WINDOW_ID);
 			await moveSelectionToIndex(selection, index, WINDOW_ID);
-			await reorderGroup(groupId);
+			reorderGroup(groupId);
 		});
 	} else {
 		bgPage.enqueueTask(async function () {

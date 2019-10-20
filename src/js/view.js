@@ -146,7 +146,7 @@ async function initView() {
 
 document.addEventListener('DOMContentLoaded', initView, false);
 
-async function onCreated(tab, groupId) {
+function onCreated(tab, groupId) {
 	if (GRPINTERFACE.get(groupId).stash) {
 		return;
 	}
@@ -158,7 +158,7 @@ async function onCreated(tab, groupId) {
 	}
 
 	updateTabNode(tab);
-	await insertTab(tab, groupId);
+	insertTab(tab, groupId);
 	Selected.requireUpdate();
 }
 
@@ -167,12 +167,12 @@ function onRemoved(tabId, groupId) {
 	updateTabCountById(groupId);
 }
 
-async function onMoved(tabId, moveInfo) {
+function onMoved(tabId, moveInfo) {
 	let groupId = TABINTERFACE.getGroupId(tabId);
 	if (groupId == null) {
 		return;
 	}
-	await reorderGroup(groupId);
+	reorderGroup(groupId);
 
 	if (use_indent) {
 		updateIndent(tabId);
@@ -186,7 +186,7 @@ async function onActivated(tabId) {
 	}
 }
 
-async function onUpdated(tab, info) {
+function onUpdated(tab, info) {
 	if (info.pinned == true) {
 		makeTabNode(tab);
 		partialUpdate(tab, info);
@@ -207,7 +207,8 @@ async function onUpdated(tab, info) {
 	}
 	else {
 		let groupId = TABINTERFACE.getGroupId(tab.id);
-		if (groupId == -1 || GRPINTERFACE.get(groupId).stash) {
+		let grp = GRPINTERFACE.get(groupId);
+		if (groupId == -1 || (grp != null && grp.stash)) {
 			if ('pinned' in info) {
 				deleteTabNode(tab.id);
 			}
@@ -218,14 +219,14 @@ async function onUpdated(tab, info) {
 		partialUpdate(tab, info);
 
 		if ('pinned' in info) {
-			await reorderGroup(groupId);
+			reorderGroup(groupId);
 		}
 	}
 }
 
-async function onStashed(groupId) {
+function onStashed(groupId) {
 	if (GRPINTERFACE.get(groupId).stash == true) {
-		await TABINTERFACE.forEach(function (tab) {
+		TABINTERFACE.forEach(function (tab) {
 			deleteTabNode(tab.id);
 		}, WINDOW_ID, function(tab) {
 			return groupId == TABINTERFACE.getGroupId(tab.id);
@@ -234,19 +235,19 @@ async function onStashed(groupId) {
 		onGroupRemoved(groupId);
 	}
 	else {
-		await onGroupCreated(groupId);
+		onGroupCreated(groupId);
 	}
 
 	Selected.requireUpdate();
 }
 
-async function onGroupCreated(groupId) {
+function onGroupCreated(groupId) {
 	let group = GRPINTERFACE.get(groupId);
 	if (group.stash) return;
 	makeGroupNode(group);
 	let frag = document.createDocumentFragment();
 
-	await TABINTERFACE.forEach(function (tab) {
+	TABINTERFACE.forEach(function (tab) {
 		if (!tab.pinned) {
 			frag.appendChild(makeTabNode(tab).tab);
 			updateTabNode(tab);
@@ -271,7 +272,7 @@ async function onGroupCreated(groupId) {
 	updateTabCountById(groupId);
 }
 
-async function onGroupRemoved(groupId) {
+function onGroupRemoved(groupId) {
 	groupNodes[groupId].group.parentNode.removeChild(groupNodes[groupId].group);
 	delete groupNodes[groupId];
 	Selected.requireUpdate();
