@@ -142,6 +142,10 @@ async function initView() {
 	view.groupsNode.addEventListener('mousedown', Selected.startSelect);
 
 	manager = newGroupsManager();
+
+	window.addEventListener("beforeunload", e => {
+		bgPage.enqueueTask(bgPage.removeViewTab, TAB_ID);
+	});
 }
 
 document.addEventListener('DOMContentLoaded', initView, false);
