@@ -29,6 +29,8 @@ async function migrateSettings() {
 				fixed_width: 256
 				, fixed_columns: 7
 			}
+			, unloadGroupOnSwitch: false
+			, unstashOnTabLoad: true
 		}
 
 		for (var key in defaults) {

@@ -5,6 +5,8 @@ var CACHE;
 var WINDOWGROUPS = {};
 var ACTIVEGROUP = {};
 
+let CONFIG = {};
+
 var selectionSourceWindowId;
 
 function setSelectionSourceWindow(windowId) {
@@ -423,6 +425,10 @@ function updateWindow(windowId) {
 		}
 	}, windowId);
 
+	if (CONFIG.unloadGroupOnSwitch) {
+		let discard = hide.filter(id => !CACHE.get(id).pinned);
+		tryBrowserArrayOperation(discard, browser.tabs.discard);
+	}
 	tryBrowserArrayOperation(hide, browser.tabs.hide);
 	tryBrowserArrayOperation(show, browser.tabs.show);
 }
@@ -539,6 +545,18 @@ async function onRemoved(tab, info, values) {
 }
 
 async function onUpdated(tab, info) {
+	if (CONFIG.unstashOnTabLoad && 'status' in info && tab.status == 'loading') {
+		let groupId = CACHE.getValue(tab.id, 'groupId');
+		if (groupId == -1) return;
+
+		let group = getGroup(tab.windowId, groupId);
+		if (group == null) return;
+
+		if (group.stash == true) {
+			await setStash(tab.windowId, groupId, false, true);
+		}
+	}
+
 	if ('pinned' in info && tab.pinned == false) {
 		if (tab.active){
 			let groupId = CACHE.getValue(tab.id, 'groupId');
@@ -561,6 +579,11 @@ function view(windowId, fn, ...param) {
 		browser.tabs.remove(view.tabId);
 		delete panoramaTabs[windowId];
 	}
+}
+
+async function updateConfig() {
+	console.log(`Updated config`);
+	CONFIG = await browser.storage.local.get();
 }
 
 async function init(cache) {

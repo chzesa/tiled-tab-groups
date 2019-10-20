@@ -401,6 +401,9 @@ async function init() {
 	initInputOptionWithId('popup_css', 'blur', 'value', '', 'popup_css');
 	initCheckboxWithId('light_theme', 'light_theme');
 
+	initCheckboxWithId('unloadGroupOnSwitch', 'unloadGroupOnSwitch', bgPage.updateConfig);
+	initCheckboxWithId('unstashOnTabLoad', 'unstashOnTabLoad', bgPage.updateConfig);
+
 	document.getElementById('add-catch-rule').addEventListener('click', function () {
 		newRule("");
 	});
