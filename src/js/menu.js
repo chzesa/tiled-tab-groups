@@ -114,7 +114,13 @@ function tabContextMenuAction(info, tab) {
 }
 
 async function initContextMenu() {
+	const menus = [
+		'reload', 'mute', 'pin', 'duplicate', 'bookmark', 'move', 'unload', 'close',
+		's1', 's2'
+	];
+
 	await createFakeTabMenu();
+	menus.forEach(id => browser.menus.update(id, { visible: false }));
 
 	let moveToWindowSubmenu = await dynamicSubmenu(`moveToWindow`, `move`,
 		_ => CACHE.forEachWindow, (windowId, tab) => windowId != tab.windowId,
@@ -131,11 +137,6 @@ async function initContextMenu() {
 		tab => WINDOWGROUPS[tab.windowId].forEach, _ => true,
 		group => group.name, (group, _) => group.id, menuActionMoveToGroup
 	);
-
-	const menus = [
-		'reload', 'mute', 'pin', 'duplicate', 'bookmark', 'move', 'unload', 'close',
-		's1', 's2'
-	];
 
 	browser.menus.onShown.addListener(function (info, tab) {
 		if (info.contexts.includes('tab')) {
