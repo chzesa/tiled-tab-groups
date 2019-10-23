@@ -150,10 +150,6 @@ async function initContextMenu() {
 	browser.menus.onHidden.addListener(_ => VIEW_CONTEXT_SHOWN = false);
 }
 
-async function setTabMenuVisibility() {
-
-}
-
 function menuCreateInfo(id, title, callback, parentId) {
 	let info =  {
 		id
