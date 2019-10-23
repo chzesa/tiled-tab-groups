@@ -1,6 +1,6 @@
 const DYNAMIC_MAP = {};
 
-async function dynamicSubmenu(menuPrefix, parent, iteratorFn, filterFn, namingFn, mapFn, callback) {
+function dynamicSubmenu(menuPrefix, parent, iteratorFn, filterFn, namingFn, mapFn, callback) {
 	let array = [];
 	let ret = { array }
 
@@ -137,7 +137,7 @@ async function initContextMenu() {
 		's1', 's2'
 	];
 
-	browser.menus.onShown.addListener(async function (info, tab) {
+	browser.menus.onShown.addListener(function (info, tab) {
 		if (info.contexts.includes('tab')) {
 			menus.forEach(id => browser.menus.update(id, { visible: VIEW_CONTEXT_SHOWN }));
 
@@ -164,7 +164,7 @@ function menuCreateInfo(id, title, callback, parentId) {
 	return info;
 }
 
-async function createFakeTabMenu() {
+function createFakeTabMenu() {
 	browser.menus.create(menuCreateInfo('reload', '&Reload Tab', async (info, tab) => {
 		(await menuGetSelection(tab)).forEach(id => browser.tabs.reload(id));
 	}));
