@@ -139,6 +139,25 @@ async function initView() {
 		return o;
 	});
 
+	document.addEventListener('contextmenu', async function (event) {
+		bgPage.viewContextShown();
+		let cont = event.target.closest('.tab');
+		let tabId;
+		if (cont == null) {
+			if (lastActiveId != -1) {
+				tabId = lastActiveId;
+			} else {
+				return;
+			}
+		} else {
+			tabId = Number(cont.getAttribute('tabId'));
+		}
+		browser.menus.overrideContext({
+			context: 'tab'
+			, tabId
+		});
+	});
+
 	view.groupsNode.addEventListener('mousedown', Selected.startSelect);
 
 	manager = newGroupsManager();

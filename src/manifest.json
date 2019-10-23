@@ -60,5 +60,6 @@
 		, "storage"
 		, "webNavigation"
 		, "menus"
+		, "menus.overrideContext"
 	]
 }

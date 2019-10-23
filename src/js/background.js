@@ -590,6 +590,12 @@ async function updateConfig() {
 	CONFIG = await browser.storage.local.get();
 }
 
+let VIEW_CONTEXT_SHOWN;
+
+function viewContextShown() {
+	VIEW_CONTEXT_SHOWN = true;
+}
+
 async function init(cache) {
 	panoramaViewUrl = browser.runtime.getURL('view.html');
 	panoramaTabs = [];

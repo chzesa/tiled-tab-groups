@@ -4,6 +4,7 @@ const tabNodes = {};
 const tab_node_pool = [];
 var tab_node_pool_anchor;
 var last_active_node;
+let lastActiveId;
 var updateIndent;
 
 function makeTabNode(tab) {
@@ -185,6 +186,8 @@ async function setActiveTabNode() {
 				id = tab.id;
 			}
 		}
+
+		lastActiveId = id;
 	}
 	else {
 		id = activeTab.id;
