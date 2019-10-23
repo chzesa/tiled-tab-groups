@@ -393,7 +393,7 @@ function setGroupId(tabId, groupId, windowId = null) {
 		updateWindow(windowId);
 	}
 	else {
-		let currentGroupId = CACHE.getValue(id, 'groupId');
+		let currentGroupId = CACHE.getValue(tabId, 'groupId');
 		if (currentGroupId == -1 || currentGroupId == groupId) return;
 		CACHE.setValue(tabId, 'groupId', groupId);
 
