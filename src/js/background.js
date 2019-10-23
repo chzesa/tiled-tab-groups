@@ -386,11 +386,15 @@ function setGroupId(tabId, groupId, windowId = null) {
 
 	if (Array.isArray(tabId)) {
 		tabId.forEach(function (id) {
+			let currentGroupId = CACHE.getValue(id, 'groupId');
+			if (currentGroupId == -1 || currentGroupId == groupId) return;
 			CACHE.setValue(id, 'groupId', groupId);
 		});
 		updateWindow(windowId);
 	}
 	else {
+		let currentGroupId = CACHE.getValue(id, 'groupId');
+		if (currentGroupId == -1 || currentGroupId == groupId) return;
 		CACHE.setValue(tabId, 'groupId', groupId);
 
 		let tab = CACHE.get(tabId);
