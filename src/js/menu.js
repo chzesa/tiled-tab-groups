@@ -158,15 +158,18 @@ async function initContextMenu() {
 
 	browser.menus.onShown.addListener(function (info, tab) {
 		if (info.contexts.includes('tab')) {
+			let changed = false;
+
 			if (VIEW_CONTEXT_SHOWN != LAST_CONTEXT) {
 				menus.forEach(id => browser.menus.update(id, { visible: VIEW_CONTEXT_SHOWN }));
+				changed = true;
+				LAST_CONTEXT = VIEW_CONTEXT_SHOWN;
 			}
 
-			if ( VIEW_CONTEXT_SHOWN != LAST_CONTEXT || moveToWindowSubmenu.update(tab) || moveToGroupSubmenu.update(tab) ) {
-				browser.menus.refresh();
-			}
+			changed = moveToWindowSubmenu.update(tab) || changed;
+			changed = moveToGroupSubmenu.update(tab) || changed;
 
-			LAST_CONTEXT = VIEW_CONTEXT_SHOWN;
+			if ( changed ) browser.menus.refresh();
 		}
 	});
 
