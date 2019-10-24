@@ -26,6 +26,8 @@ function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, ico
 					, parentId
 				};
 
+				if (icons["16"] != null) { info.icons = icons; }
+
 				array.push(info);
 				browser.menus.create(info);
 				state[menuIndex] = { visible: true, title, icons };
@@ -41,11 +43,14 @@ function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, ico
 					state[menuIndex].title = title;
 					state[menuIndex].icons = icons;
 
-					browser.menus.update(info.id, {
+					let updateInfo = {
 						title,
-						icons,
 						visible: true
-					});
+					};
+
+					if (icons["16"] != null) { updateInfo.icons = icons; }
+
+					browser.menus.update(info.id, updateInfo);
 				}
 			}
 
