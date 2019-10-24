@@ -1,42 +1,55 @@
 const DYNAMIC_MAP = {};
 
-function dynamicSubmenu(menuPrefix, parent, iteratorFn, filterFn, namingFn, mapFn, callback) {
+function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, iconFn, mapFn, onclick) {
 	let array = [];
 	let state = [];
 	let ret = { array, state }
 
-	ret.update = tab => {
+	ret.update = param => {
 		let count = 0;
 		let changed = false;
 
-		iteratorFn(tab)(v => {
-			if (!filterFn(v, tab)) { return; }
-			let title = namingFn(v, tab);
+		iteratorFn(param)(v => {
+			if (!filterFn(v, param)) { return; }
+			let title = titleFn(v, param);
+			let icons = iconFn(v, param);
 
 			let menuIndex = count++;
 			let info = array[menuIndex];
 
 			if (info == null) {
-				info = menuCreateInfo(`${menuPrefix}${menuIndex}`, title, callback, parent);
+				info = {
+					id: `${menuPrefix}${menuIndex}`
+					, title
+					, contexts: ['tab']
+					, onclick
+					, parentId
+				};
 
 				array.push(info);
 				browser.menus.create(info);
-				state[menuIndex] = { visible: true, title };
+				state[menuIndex] = { visible: true, title, icons };
 				changed = true;
 			} else {
-				if (!state[menuIndex].visible || state[menuIndex].title != title) {
+				if (!state[menuIndex].visible
+					|| state[menuIndex].title != title
+					|| state[menuIndex].icons["16"] != icons["16"]
+					|| state[menuIndex].icons["32"] != icons["32"]) {
 					changed = true;
+
 					state[menuIndex].visible = true;
 					state[menuIndex].title = title;
+					state[menuIndex].icons = icons;
 
 					browser.menus.update(info.id, {
 						title,
+						icons,
 						visible: true
 					});
 				}
 			}
 
-			DYNAMIC_MAP[info.id] = mapFn(v, tab);
+			DYNAMIC_MAP[info.id] = mapFn(v, param);
 		});
 
 		for (let i = count; i < array.length; i++) {
@@ -141,19 +154,26 @@ async function initContextMenu() {
 	menus.forEach(id => browser.menus.update(id, { visible: false }));
 
 	let moveToWindowSubmenu = await dynamicSubmenu(`moveToWindow`, `move`,
-		_ => CACHE.forEachWindow, (windowId, tab) => windowId != tab.windowId,
+		_ => CACHE.forEachWindow,
+		(windowId, tab) => windowId != tab.windowId,
 		(windowId, tab) => {
 			let numTabs = CACHE.debug().windows[windowId].length;
 			let activeInWindow = CACHE.getActive(windowId);
 			return `Window ${windowId} (${numTabs > 1
 				? `${numTabs} tabs`
 				: ``} active: ${activeInWindow.title})`;
-		}, (windowId, tab) => windowId, menuActionMoveToWindow
+		},
+		_ => { return {}; },
+		(windowId, tab) => windowId,
+		menuActionMoveToWindow
 	);
 
 	let moveToGroupSubmenu = await dynamicSubmenu(`moveToGroup`, `moveGroup`,
 		tab => WINDOWGROUPS[tab.windowId].forEach, _ => true,
-		group => group.name, (group, _) => group.id, menuActionMoveToGroup
+		group => group.name,
+		_ => { return {}; },
+		(group, _) => group.id,
+		menuActionMoveToGroup
 	);
 
 	browser.menus.onShown.addListener(function (info, tab) {
