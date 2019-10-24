@@ -77,8 +77,8 @@ function menuActionMoveToWindow(info, tab) {
 	let windowId = DYNAMIC_MAP[info.menuItemId];
 	let ids = menuGetSelection(tab).then(ids => {
 		browser.tabs.move(ids, {
-		windowId,
-		index: -1
+			windowId,
+			index: -1
 		});
 	});
 }
