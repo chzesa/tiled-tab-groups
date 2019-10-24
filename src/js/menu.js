@@ -2,10 +2,12 @@ const DYNAMIC_MAP = {};
 
 function dynamicSubmenu(menuPrefix, parent, iteratorFn, filterFn, namingFn, mapFn, callback) {
 	let array = [];
-	let ret = { array }
+	let state = [];
+	let ret = { array, state }
 
 	ret.update = tab => {
 		let count = 0;
+		let changed = false;
 
 		iteratorFn(tab)(v => {
 			if (!filterFn(v, tab)) { return; }
@@ -19,21 +21,35 @@ function dynamicSubmenu(menuPrefix, parent, iteratorFn, filterFn, namingFn, mapF
 
 				array.push(info);
 				browser.menus.create(info);
+				state[menuIndex] = { visible: true, title };
+				changed = true;
 			} else {
-				browser.menus.update(info.id, {
-					title,
-					visible: true
-				});
+				if (!state[menuIndex].visible || state[menuIndex].title != title) {
+					changed = true;
+					state[menuIndex].visible = true;
+					state[menuIndex].title = title;
+
+					browser.menus.update(info.id, {
+						title,
+						visible: true
+					});
+				}
 			}
 
 			DYNAMIC_MAP[info.id] = mapFn(v, tab);
 		});
 
 		for (let i = count; i < array.length; i++) {
-			browser.menus.update(array[i].id, {
-				visible: false
-			});
+			if (state[i].visible) {
+				changed = true;
+				state[i].visible = false;
+				browser.menus.update(array[i].id, {
+					visible: false
+				});
+			}
 		}
+
+		return changed;
 	}
 
 	return ret;
@@ -113,6 +129,8 @@ function tabContextMenuAction(info, tab) {
 	});
 }
 
+let LAST_CONTEXT = false;
+
 async function initContextMenu() {
 	const menus = [
 		'reload', 'mute', 'pin', 'duplicate', 'bookmark', 'move', 'unload', 'close',
@@ -140,11 +158,15 @@ async function initContextMenu() {
 
 	browser.menus.onShown.addListener(function (info, tab) {
 		if (info.contexts.includes('tab')) {
-			menus.forEach(id => browser.menus.update(id, { visible: VIEW_CONTEXT_SHOWN }));
+			if (VIEW_CONTEXT_SHOWN != LAST_CONTEXT) {
+				menus.forEach(id => browser.menus.update(id, { visible: VIEW_CONTEXT_SHOWN }));
+			}
 
-			moveToWindowSubmenu.update(tab);
-			moveToGroupSubmenu.update(tab);
-			browser.menus.refresh();
+			if ( VIEW_CONTEXT_SHOWN != LAST_CONTEXT || moveToWindowSubmenu.update(tab) || moveToGroupSubmenu.update(tab) ) {
+				browser.menus.refresh();
+			}
+
+			LAST_CONTEXT = VIEW_CONTEXT_SHOWN;
 		}
 	});
 
