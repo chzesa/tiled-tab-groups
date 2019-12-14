@@ -633,8 +633,7 @@ function start() {
 			onUpdated
 		},
 		auto: true,
-		tabValueKeys: ['groupId'],
-		init
+		tabValueKeys: ['groupId']
 	});
 
 	QUEUE = CACHE.debug().queue;
@@ -643,7 +642,7 @@ function start() {
 		QUEUE.do(onCommand, command);
 	});
 
-	CACHE.init();
+	CACHE.init(init);
 }
 
 start();
