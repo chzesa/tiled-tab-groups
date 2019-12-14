@@ -519,7 +519,7 @@ async function onAttached(tab, info) {
 async function onCreated(tab) {
 	let windowId = tab.windowId;
 	let groupId = CACHE.getValue(tab.id, 'groupId');
-	if (groupId == null || -1) {
+	if (groupId == null || groupId == -1) {
 		if (ACTIVEGROUP[windowId] == null) {
 			await onWindowCreated(windowId);
 		}
