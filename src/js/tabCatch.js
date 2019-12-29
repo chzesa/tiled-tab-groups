@@ -2,12 +2,7 @@ let tab_catch_rules = [];
 var webNavigationListener = false;
 
 async function onWebNavigation(nav) {
-	let tab;
-	try {
-		tab = await browser.tabs.get(nav.tabId);
-		tabCatch(tab);
-	}
-	catch (e) {}
+	browser.tabs.get(nav.tabId).then(tab => QUEUE.do(tabCatch, tab));
 }
 
 async function updateCatchRules(windowId) {
@@ -91,13 +86,11 @@ async function tabCatch(tab) {
 			continue;
 		}
 
-		QUEUE.do(async function () {
 			setGroupId(tab.id, group.id);
 			let view = panoramaTabs[tab.windowId];
 			if (view != null) {
 				view.reorderGroup(group.id);
 			}
-		});
 
 		break;
 	}
