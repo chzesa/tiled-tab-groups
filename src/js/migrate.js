@@ -5,9 +5,11 @@ async function migrateSettings() {
 		let vcomp = r.exec(comp);
 
 		for (var i = 1; i < 4; i++) {
-			if (va[i] < vcomp[i]) {
-				return true;
+			if (va[i] == vcomp[i]) {
+				continue;
 			}
+
+			return va[i] < vcomp[i];
 		}
 
 		return false;
