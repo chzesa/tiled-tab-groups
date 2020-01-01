@@ -90,6 +90,10 @@ async function menuActionMoveToGroup(info, tab) {
 	QUEUE.do(async () => {
 		let windowId = tab.windowId;
 		setGroupId(ids, groupId, tab.windowId);
+		if (ids.includes(CACHE.getActive(windowId).id)) {
+			await setStash(windowId, groupId,  false);
+			setActiveGroup(windowId, groupId);
+		}
 		view(tab.windowId, "reorderGroup", groupId);
 	})
 }
