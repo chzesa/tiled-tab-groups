@@ -107,11 +107,7 @@ async function tabCatch(tab) {
 			}
 		}
 
-		let view = panoramaTabs[tab.windowId];
-		if (view != null) {
-			view.view.reorderGroup(group.id);
-		}
-
+		view(tab.windowId, `reorderGroup`, group.id);
 		break;
 	}
 }
