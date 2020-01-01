@@ -294,7 +294,9 @@ function deleteGroup(windowId, groupId) {
 
 async function setStash(windowId, groupId, state) {
 	let grpIfc = WINDOWGROUPS[windowId];
-	if (grpIfc.get(groupId).stash == state) {
+
+	if (grpIfc == null || grpIfc.get(groupId) == null
+		|| grpIfc.get(groupId).stash == state) {
 		return;
 	}
 
@@ -344,14 +346,8 @@ function getGroup(windowId, groupId) {
 }
 
 function setActiveGroup(windowId, groupId) {
-	let groups = WINDOWGROUPS[windowId];
-	if (groups == null) return;
-	let group = groups.get(groupId);
-
-	if (group == null || ACTIVEGROUP[windowId] == groupId) return;
-	// if (group.stash == true) {
-	// 	await setStash(windowId, groupId, false);
-	// }
+	if (ACTIVEGROUP[windowId] == groupId) return;
+	// await setStash(windowId, groupId, false);
 
 	browser.sessions.setWindowValue(windowId, 'activeGroup', groupId);
 	ACTIVEGROUP[windowId] = groupId;
@@ -481,13 +477,7 @@ async function onActivated(tab, info) {
 	let groupId = CACHE.getValue(tabId, 'groupId');
 	if (groupId == -1) return;
 
-	let group = getGroup(windowId, groupId);
-	if (group == null) return;
-
-	if (group.stash == true) {
-		await setStash(windowId, groupId, false);
-	}
-
+	await setStash(windowId, groupId, false);
 	setActiveGroup(windowId, groupId);
 }
 
@@ -544,12 +534,7 @@ async function onUpdated(tab, info) {
 		let groupId = CACHE.getValue(tab.id, 'groupId');
 		if (groupId == -1) return;
 
-		let group = getGroup(tab.windowId, groupId);
-		if (group == null) return;
-
-		if (group.stash == true) {
-			await setStash(tab.windowId, groupId, false);
-		}
+		await setStash(tab.windowId, groupId, false);
 	}
 
 	if ('pinned' in info && tab.pinned == false) {

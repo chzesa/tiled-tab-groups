@@ -86,9 +86,7 @@ async function tabCatch(tab) {
 			continue;
 		}
 
-		if (group.stash == true) {
-			await setStash(tab.windowId, group.id, false);
-		}
+		await setStash(tab.windowId, group.id, false);
 
 		setGroupId(tab.id, group.id);
 		if (tab.active) {
