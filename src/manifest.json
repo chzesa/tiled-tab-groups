@@ -2,7 +2,7 @@
 	"manifest_version": 2
 	, "name": "Tiled Tab Groups"
 	, "description": "Compact tab groups management"
-	, "version": "0.18.11"
+	, "version": "0.18.12"
 	, "icons": {
 		"16": "icons/logo/logo-16.png"
 		, "32": "icons/logo/logo-32.png"
