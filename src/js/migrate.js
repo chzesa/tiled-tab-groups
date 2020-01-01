@@ -33,6 +33,7 @@ async function migrateSettings() {
 			}
 			, unloadGroupOnSwitch: false
 			, unstashOnTabLoad: true
+			, tabCatchStashedGrpAction: TabCatchStashedGrpAction.Unstash
 		}
 
 		for (var key in defaults) {

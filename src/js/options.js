@@ -384,11 +384,74 @@ async function initInputOptionWithId(pElementId, pEvent, pValueKey, pDefaultValu
 	}, false);
 }
 
+function createRadioMenu(title, callback, multiline, options, selected) {
+	let elems = [];
+	let children = [];
+
+	options.forEach(v => {
+		let elem = new_element(`input`, {
+			value: v.value,
+			type: `radio`
+		});
+
+		if (selected != null && v.value == selected) { elem.checked = true; }
+
+		elems.push(elem);
+		elem.addEventListener(`click`, _ => {
+			elems.forEach(e => {
+				e.checked = false;
+			});
+			elem.checked = true;
+			callback(v.value);
+		});
+
+		let label = new_element(`label`, {}, [document.createTextNode(v.name)]);
+		if (multiline) {
+			children.push(new_element(`div`, {}, [elem, label]));
+		} else {
+			children.push(elem);
+			children.push(label);
+		}
+	});
+
+
+	children.unshift(document.createTextNode(title));
+
+	return new_element(`div`, {}, children);
+}
+
+function createCheckbox(title, callback, value) {
+	let checkbox = new_element(`input`, { type: `checkbox` });
+	let label = new_element(`label`, {}, [document.createTextNode(title)]);
+
+	checkbox.checked = value;
+	checkbox.addEventListener(`click`, _ => callback(checkbox.checked));
+
+	return new_element(`div`, {}, [checkbox, label]);
+}
+
+function updateSetting(k, v) {
+	let conf = {};
+	conf[k] = v;
+	console.log(conf);
+	browser.storage.local.set(conf).then(bgPage.updateConfig);
+}
+
 async function init() {
+	let config = await browser.storage.local.get();
 	bgPage = browser.extension.getBackgroundPage();
 	TABINTERFACE = await bgPage.registerPopup();
 	WINDOW_ID = (await browser.windows.getCurrent()).id;
 	insertShortcutOptions();
+
+	document.getElementById(`tab-catch-stashed-action`).appendChild(
+		createRadioMenu(`Action to take if tab would be moved to stashed group:`, v => {
+		updateSetting(`tabCatchStashedGrpAction`, v);
+	}, true, [
+		{name: `Move only`, value: TabCatchStashedGrpAction.None},
+		{name: `Move and unstash group`, value: TabCatchStashedGrpAction.Unstash},
+		{name: `Move and unload tab`, value: TabCatchStashedGrpAction.Discard},
+	], config.tabCatchStashedGrpAction));
 
 	initCheckboxWithId('tst', 'use_tst_indent');
 	initCheckboxWithId('tst_tree_close', 'use_tst_tree_close');

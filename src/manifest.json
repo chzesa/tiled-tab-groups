@@ -37,7 +37,7 @@
 	"background": {
 		"scripts": [
 			"external/js-syncqueue/src.js",
-			"external/we-tabcache/src.js", "js/menu.js",
+			"external/we-tabcache/src.js", "js/const.js", "js/menu.js",
 			"js/groupInterface.js", "js/tabCatch.js", "js/migrate.js",
 			"js/bgViews.js", "js/background.js", "js/util.js"
 		]

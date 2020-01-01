@@ -86,11 +86,25 @@ async function tabCatch(tab) {
 			continue;
 		}
 
-		await setStash(tab.windowId, group.id, false);
-
 		setGroupId(tab.id, group.id);
+
 		if (tab.active) {
+			await setStash(tab.windowId, group.id, false);
 			setActiveGroup(tab.windowId, group.id);
+		} else {
+			switch(CONFIG.tabCatchStashedGrpAction) {
+				case TabCatchStashedGrpAction.None:
+					break;
+				case TabCatchStashedGrpAction.Unstash:
+					await setStash(tab.windowId, group.id, false);
+					break;
+				case TabCatchStashedGrpAction.Discard:
+					browser.tabs.discard(tab.id);
+					break;
+				default:
+					console.log(`No config option set`);
+					break;
+			}
 		}
 
 		let view = panoramaTabs[tab.windowId];

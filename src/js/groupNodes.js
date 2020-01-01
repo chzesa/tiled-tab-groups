@@ -208,6 +208,10 @@ async function fillGroupNodes() {
 function reorderGroup(groupId) {
 	let group = GRPINTERFACE.get(groupId);
 	if (group.stash == true) {
+		TABINTERFACE.forEach(function (tab) {
+			deleteTabNode(tab.id);
+		}, WINDOW_ID, tab => groupId == TABINTERFACE.getValue(tab.id, 'groupId'));
+		Selected.requireUpdate();
 		return;
 	}
 
