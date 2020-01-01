@@ -114,37 +114,6 @@ async function menuGetSelection(tab) {
 	return ids;
 }
 
-function tabContextMenuAction(info, tab) {
-	QUEUE.do(async function () {
-		let groupId;
-
-		if (info.menuItemId == "newGroup") {
-			let ifc = WINDOWGROUPS[tab.windowId];
-			let group = await ifc.new();
-			groupId = group.id;
-		} else {
-			groupId = menus[info.menuItemId].groupId;
-		}
-
-		let windowId = tab.windowId;
-		await setStash(windowId, groupId, false);
-
-		if (tab.highlighted) {
-			let highlighted = await browser.tabs.query({highlighted: true, currentWindow: true});
-			let ids = highlighted.map((tab) => tab.id);
-			setGroupId(ids, groupId, tab.windowId);
-		} else {
-			setGroupId(tab.id, groupId);
-		}
-
-		if (tab.active || tab.highlighted) {
-			setActiveGroup(windowId, groupId);
-		}
-
-		view(tab.windowId, "reorderGroup", groupId);
-	});
-}
-
 let LAST_CONTEXT = false;
 
 async function initContextMenu() {
