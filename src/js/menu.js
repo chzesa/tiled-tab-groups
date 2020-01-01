@@ -128,7 +128,7 @@ function tabContextMenuAction(info, tab) {
 
 		let windowId = tab.windowId;
 		if (CACHE.getGroup(windowId, groupId).stash) {
-			await setStash(windowId, groupId, false, true);
+			await setStash(windowId, groupId, false);
 		}
 
 		if (tab.highlighted) {

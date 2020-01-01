@@ -106,11 +106,8 @@ function newGroupsManager() {
 					return;
 				}
 			}
-
-			bgPage.enqueueTask(async function () {
-				await bgPage.setStash(WINDOW_ID, group.id, !group.stash, true);
-				node.update(group);
-			});
+			await bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, !group.stash);
+			node.update(group);
 		});
 
 		// node.close = new_element(`div`, {

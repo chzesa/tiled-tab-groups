@@ -106,7 +106,8 @@ async function makeGroupNodes() {
 
 		unstash.addEventListener('click', async function (event) {
 			event.stopPropagation();
-			bgPage.setStash(WINDOW_ID, group.id, false);
+
+			await bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, false);
 			nodes[group.id].stash = false;
 			updateGroupNodes();
 		});

@@ -241,7 +241,7 @@ async function alternativeGroup(windowId, groupId) {
 		return candidate;
 	}
 	else {
-		await setStash(windowId, collectId, false, true);
+		await setStash(windowId, collectId, false);
 		setActiveGroup(windowId, stashCandidate.id);
 		return stashCandidate;
 	}
@@ -292,48 +292,39 @@ function deleteGroup(windowId, groupId) {
 	});
 }
 
-async function setStash(windowId, groupId, state, now = false) {
-	async function set() {
-		let grpIfc = WINDOWGROUPS[windowId];
-		if (grpIfc.get(groupId).stash == state) {
+async function setStash(windowId, groupId, state) {
+	let grpIfc = WINDOWGROUPS[windowId];
+	if (grpIfc.get(groupId).stash == state) {
+		return;
+	}
+
+	// If current group is being stashed, find alternative.
+	// If current group is the only group in window do nothing.
+	if (state && ACTIVEGROUP[windowId] == groupId) {
+		let group = await alternativeGroup(windowId, groupId);
+		if (group == null) {
+			console.log(`Cannot stash the last group in a window.`);
 			return;
 		}
-
-		// If current group is being stashed, find alternative.
-		// If current group is the only group in window do nothing.
-		if (state && ACTIVEGROUP[windowId] == groupId) {
-			let group = await alternativeGroup(windowId, groupId);
-			if (group == null) {
-				console.log(`Cannot stash the last group in a window.`);
-				return;
-			}
-		}
-
-		// If the group is being stashed, unload all tabs in the group.
-		if (state) {
-			let array = [];
-
-			await CACHE.forEach(function (tab) {
-				if (tab.pinned) return;
-				array.push(tab.id);
-
-			}, windowId, function(tab) {
-				return groupId == CACHE.getValue(tab.id, 'groupId');
-			});
-
-			await tryBrowserArrayOperation(array, browser.tabs.discard);
-		}
-
-		await grpIfc.setStash(groupId, state);
-		view(windowId, "onStashed", groupId);
 	}
 
-	if (now) {
-		await set();
+	// If the group is being stashed, unload all tabs in the group.
+	if (state) {
+		let array = [];
+
+		await CACHE.forEach(function (tab) {
+			if (tab.pinned) return;
+			array.push(tab.id);
+
+		}, windowId, function(tab) {
+			return groupId == CACHE.getValue(tab.id, 'groupId');
+		});
+
+		await tryBrowserArrayOperation(array, browser.tabs.discard);
 	}
-	else {
-		QUEUE.do(set);
-	}
+
+	await grpIfc.setStash(groupId, state);
+	view(windowId, "onStashed", groupId);
 }
 
 function enqueueTask(task, ...param) {
@@ -359,7 +350,7 @@ function setActiveGroup(windowId, groupId) {
 
 	if (group == null || ACTIVEGROUP[windowId] == groupId) return;
 	// if (group.stash == true) {
-	// 	await setStash(windowId, groupId, false, true);
+	// 	await setStash(windowId, groupId, false);
 	// }
 
 	browser.sessions.setWindowValue(windowId, 'activeGroup', groupId);
@@ -494,7 +485,7 @@ async function onActivated(tab, info) {
 	if (group == null) return;
 
 	if (group.stash == true) {
-		await setStash(windowId, groupId, false, true);
+		await setStash(windowId, groupId, false);
 	}
 
 	setActiveGroup(windowId, groupId);
@@ -557,7 +548,7 @@ async function onUpdated(tab, info) {
 		if (group == null) return;
 
 		if (group.stash == true) {
-			await setStash(tab.windowId, groupId, false, true);
+			await setStash(tab.windowId, groupId, false);
 		}
 	}
 
