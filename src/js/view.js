@@ -27,6 +27,10 @@ var tab_count_recount_groups = {};
 
 var use_indent = false;
 
+let STATE = {
+	drawAllGroups: false
+};
+
 async function initView() {
 	bgPage = browser.extension.getBackgroundPage();
 	view.groupsNode = document.getElementById('groups');
@@ -169,8 +173,12 @@ async function initView() {
 
 document.addEventListener('DOMContentLoaded', initView, false);
 
+function isGroupVisible(groupId) {
+	return STATE.drawAllGroups || !GRPINTERFACE.get(groupId).stash;
+}
+
 function onCreated(tab, groupId) {
-	if (GRPINTERFACE.get(groupId).stash) {
+	if (!isGroupVisible(groupId)) {
 		return;
 	}
 
@@ -248,7 +256,7 @@ function onUpdated(tab, info) {
 }
 
 function onStashed(groupId) {
-	if (GRPINTERFACE.get(groupId).stash == true) {
+	if (!isGroupVisible(groupId)) {
 		TABINTERFACE.forEach(function (tab) {
 			deleteTabNode(tab.id);
 		}, WINDOW_ID, function(tab) {
@@ -266,8 +274,8 @@ function onStashed(groupId) {
 
 function onGroupCreated(groupId) {
 	let group = GRPINTERFACE.get(groupId);
-	if (group.stash) return;
 	makeGroupNode(group);
+	if (!isGroupVisible(groupId)) return;
 	let frag = document.createDocumentFragment();
 
 	TABINTERFACE.forEach(function (tab) {
