@@ -86,19 +86,11 @@ function makeTabNode(tab) {
 				}
 			}
 
-			try {
-				browser.tabs.remove(tab_object.id);
-			}
-			catch (e) {
-				console.log(e);
-				deleteTabNode(tab_object.id);
-			}
-
+			browser.tabs.remove(tab_object.id);
 		}, false);
 	}
 
 	tabNodes[tab.id] = tab_object;
-
 	return tab_object;
 }
 
