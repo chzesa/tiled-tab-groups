@@ -269,6 +269,10 @@ function onUpdated(tab, info) {
 }
 
 function onStashed(groupId) {
+	if (STATE.drawAllGroups) {
+		return;
+	}
+
 	if (!isGroupVisible(groupId)) {
 		TABINTERFACE.forEach(function (tab) {
 			deleteTabNode(tab.id);
