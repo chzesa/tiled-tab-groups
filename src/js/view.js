@@ -287,8 +287,8 @@ function onStashed(groupId) {
 
 function onGroupCreated(groupId) {
 	let group = GRPINTERFACE.get(groupId);
-	makeGroupNode(group);
 	if (!isGroupVisible(groupId)) return;
+	let grpNode = makeGroupNode(group);
 	let frag = document.createDocumentFragment();
 
 	TABINTERFACE.forEach(function (tab) {
@@ -312,7 +312,7 @@ function onGroupCreated(groupId) {
 		}
 	}
 
-	setAsNthChild(groupNodes[group.id].group, view.groupsNode, group.index - hidden);
+	setAsNthChild(grpNode.group, view.groupsNode, group.index - hidden);
 	updateTabCountById(groupId);
 }
 
