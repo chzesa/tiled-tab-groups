@@ -127,6 +127,19 @@ async function initView() {
 		})
 	});
 
+	document.getElementById('visibility-toggle-button').addEventListener('click', async () => {
+		STATE.drawAllGroups = !STATE.drawAllGroups;
+		console.log(`Draw all: ${STATE.drawAllGroups}`);
+		await fillGroupNodes();
+		if (STATE.drawAllGroups) {
+			console.log(`Updating all tabs`);
+			await TABINTERFACE.forEach(async function (tab) {
+				updateTabNode(tab);
+				if (use_indent) updateIndent(tab.id);
+			}, WINDOW_ID);
+		}
+	});
+
 	Selected.init(function () {
 		let o = {};
 

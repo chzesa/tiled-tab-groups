@@ -64,6 +64,17 @@ body
 	background-position: center;
 }
 
+#visibility-toggle-button
+{
+	cursor: pointer;
+	width: 28px;
+	height: 28px;
+	background-image: url(/icons/eye.svg);
+	background-repeat: no-repeat;
+	background-size: 28px;
+	background-position: center;
+}
+
 #toolbar .icon
 {
 	display: none;
