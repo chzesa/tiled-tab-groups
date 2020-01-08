@@ -166,28 +166,35 @@ function tabsInGroup(pGroupId) {
 }
 
 async function fillGroupNodes() {
-	var fragment = {};
+	let fragment = {};
 	let pinFrag = document.createDocumentFragment();
+	let collect = document.createDocumentFragment();
+	let stashed = document.createDocumentFragment();
 
-	await GRPINTERFACE.forEach(async function (group) {
-		if (group.stash) return;
-		if (groupNodes[group.id] == null) {
-			makeGroupNode(group);
+	await GRPINTERFACE.forEach(async group => {
+		if (!isGroupVisible(group.id)) {
+			if (groupNodes[group.id] != null) {
+				stashed.appendChild(groupNodes[group.id].group);
+			} else {
+				return;
+			}
 		}
 
+		let grpNode = makeGroupNode(group);
 		fragment[group.id] = document.createDocumentFragment();
+		collect.appendChild(grpNode.group);
 	});
 
-	await TABINTERFACE.forEach(async function (tab) {
+	await TABINTERFACE.forEach(async tab => {
 		let groupId = TABINTERFACE.getGroupId(tab.id);
 		if (fragment[groupId] == null) return;
-		makeTabNode(tab);
+		let node = makeTabNode(tab).tab;
 
 		if (tab.pinned) {
-			pinFrag.appendChild(tabNodes[tab.id].tab);
+			pinFrag.appendChild(node);
 		}
 		else {
-			fragment[groupId].appendChild(tabNodes[tab.id].tab);
+			fragment[groupId].appendChild(node);
 		}
 
 	}, WINDOW_ID);
@@ -196,10 +203,13 @@ async function fillGroupNodes() {
 		if (groupNodes[group.id] == undefined) {
 			return;
 		}
-		setAsNthChild(fragment[group.id], groupNodes[group.id].content);
+
+		groupNodes[group.id].content.appendChild(fragment[group.id]);
 		updateTabCountById(group.id);
 	})
 
+	view.groupsNode.appendChild(collect);
+	view.stashNode.appendChild(stashed);
 	pinned.appendChild(pinFrag);
 	Selected.requireUpdate();
 }
