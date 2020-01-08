@@ -274,8 +274,8 @@ function onStashed(groupId) {
 
 function onGroupCreated(groupId) {
 	let group = GRPINTERFACE.get(groupId);
-	makeGroupNode(group);
 	if (!isGroupVisible(groupId)) return;
+	let grpNode = makeGroupNode(group);
 	let frag = document.createDocumentFragment();
 
 	TABINTERFACE.forEach(function (tab) {
@@ -291,16 +291,8 @@ function onGroupCreated(groupId) {
 	});
 
 	setAsNthChild(frag, groupNodes[group.id].content);
-
-	var hidden = 0;
-	for (var i = 0; i < group.index; i++) {
-		if (GRPINTERFACE.getByIndex(i).stash == true) {
-			hidden++;
-		}
-	}
-
-	setAsNthChild(groupNodes[group.id].group, view.groupsNode, group.index - hidden);
 	updateTabCountById(groupId);
+	view.groupsNode.appendChild(grpNode.group);
 }
 
 function onGroupRemoved(groupId) {
