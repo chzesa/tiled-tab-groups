@@ -5,7 +5,7 @@ var pinned = document.getElementById('pinnedTabs');
 
 function makeGroupNode(group) {
 	if (groupNodes[group.id] != null) {
-		return;
+		return groupNodes[group.id];
 	}
 	// Header
 	var input = new_element('input', {
@@ -158,8 +158,7 @@ function makeGroupNode(group) {
 
 	}, false);
 
-	let parent = group.stash ? view.stashNode : view.groupsNode;
-	parent.appendChild(groupNodes[group.id].group);
+	return groupNodes[group.id];
 }
 
 function tabsInGroup(pGroupId) {
