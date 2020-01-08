@@ -10,7 +10,6 @@ function newGroupsManager() {
 	let dragged;
 	let draggedOver;
 	let before;
-	let changed = false;
 
 	function dragStart(event) {
 		setNodeClass(this, 'drag', true);
@@ -47,7 +46,6 @@ function newGroupsManager() {
 
 		bgPage.enqueueTask(async function () {
 			await GRPINTERFACE.setIndex(source.id, target);
-			changed = true;
 			await self.update();
 		})
 	}
@@ -137,18 +135,7 @@ function newGroupsManager() {
 
 	self.hide = async function () {
 		setNodeClass(overlay, `hidden`, true);
-		if (changed) {
-			let frag = document.createDocumentFragment();
-			await GRPINTERFACE.forEach(function (group) {
-				if (group.stash == true) return;
-				let node = groupNodes[group.id];
-				if (node.group == null) return;
-				frag.appendChild(node.group);
-			});
-
-			view.groupsNode.appendChild(frag);
-		}
-		changed = false;
+		await fillGroupNodes();
 	}
 
 	self.update = async function () {
