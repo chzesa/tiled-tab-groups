@@ -175,9 +175,9 @@ async function fillGroupNodes() {
 		if (!isGroupVisible(group.id)) {
 			if (groupNodes[group.id] != null) {
 				stashed.appendChild(groupNodes[group.id].group);
-			} else {
-				return;
 			}
+
+			return;
 		}
 
 		let grpNode = makeGroupNode(group);
@@ -200,7 +200,7 @@ async function fillGroupNodes() {
 	}, WINDOW_ID);
 
 	await GRPINTERFACE.forEach(function (group) {
-		if (groupNodes[group.id] == undefined) {
+		if (groupNodes[group.id] == undefined || fragment[group.id] == null) {
 			return;
 		}
 
