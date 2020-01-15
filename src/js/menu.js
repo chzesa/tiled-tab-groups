@@ -97,6 +97,24 @@ async function menuActionMoveToGroup(info, tab) {
 	})
 }
 
+async function openLinkInGroup(info, opener) {
+	let groupId = DYNAMIC_MAP[info.menuItemId];
+
+	browser.tabs.create({
+		active: false,
+		cookieStoreId: opener.cookieStoreId,
+		openerTabId: opener.id,
+		url: info.linkUrl
+	}).then(tab => {
+		QUEUE.do(tabId => {
+			let tab = CACHE.get(tabId);
+			setGroupId(tab.id, groupId);
+			view(tab.windowId, `onGroupCreated`, groupId);
+			view(tab.windowId, `reorderGroup`, groupId);
+		}, tab.id);
+	});
+}
+
 async function menuGetSelection(tab) {
 	let ids;
 	try {
@@ -144,16 +162,26 @@ async function initContextMenu() {
 	);
 
 	let moveToGroupSubmenu = await dynamicSubmenu(`moveToGroup`, `moveGroup`,
-		tab => WINDOWGROUPS[tab.windowId].forEach, _ => true,
+		tab => WINDOWGROUPS[tab.windowId].forEach,
+		_ => true,
 		group => group.name,
 		_ => { return {}; },
 		(group, _) => group.id,
 		menuActionMoveToGroup
 	);
 
+	let openInGroupSubmenu = await dynamicSubmenu(`openInGroup`, `openGroup`,
+		tab => WINDOWGROUPS[tab.windowId].forEach,
+		(group, tab) => group.id != CACHE.getValue(tab.id, `groupId`),
+		group => group.name,
+		_ => { return {}; },
+		(group, _) => group.id,
+		openLinkInGroup
+	);
+
 	browser.menus.onShown.addListener(function (info, tab) {
+		let changed = false;
 		if (info.contexts.includes('tab')) {
-			let changed = false;
 
 			if (VIEW_CONTEXT_SHOWN != LAST_CONTEXT) {
 				menus.forEach(id => browser.menus.update(id, { visible: VIEW_CONTEXT_SHOWN }));
@@ -163,9 +191,13 @@ async function initContextMenu() {
 
 			changed = moveToWindowSubmenu.update(tab) || changed;
 			changed = moveToGroupSubmenu.update(tab) || changed;
-
-			if ( changed ) browser.menus.refresh();
 		}
+
+		if (info.contexts.includes('link')) {
+			changed = openInGroupSubmenu.update(tab) || changed;
+		}
+
+		if ( changed ) browser.menus.refresh();
 	});
 
 	browser.menus.onHidden.addListener(_ => VIEW_CONTEXT_SHOWN = false);
@@ -303,8 +335,8 @@ function createFakeTabMenu() {
 			if (tab.active || tab.highlighted) {
 				setActiveGroup(windowId, groupId);
 			}
-
-			view(tab.windowId, "reorderGroup", groupId);
+			view(windowId, `onGroupCreated`, groupId);
+			view(windowId, `reorderGroup`, groupId);
 		}, tab);
 	}, `moveGroup`));
 
@@ -331,4 +363,36 @@ function createFakeTabMenu() {
 
 		browser.tabs.remove(selection);
 	}));
+
+	browser.menus.create({id: 'openGroup', title: 'Open in Group', contexts: [`link`]});
+	browser.menus.create({
+		id: 'openInNewGroup',
+		title: 'Open in New &Group',
+		parentId: `openGroup`,
+		onclick: (info, tab) => {QUEUE.do(async (info, opener) => {
+			let windowId = opener.windowId;
+			let ifc = WINDOWGROUPS[windowId];
+			let group = await ifc.new();
+			let groupId = group.id;
+
+			browser.tabs.create({
+				active: false,
+				cookieStoreId: opener.cookieStoreId,
+				openerTabId: opener.id,
+				url: info.linkUrl
+			}).then(tab => {
+				QUEUE.do(tabId => {
+					let tab = CACHE.get(tabId);
+					setGroupId(tab.id, groupId);
+					view(tab.windowId, `onGroupCreated`, groupId);
+					view(tab.windowId, `reorderGroup`, groupId);
+				}, tab.id);
+			});
+		}, info, tab);}
+	});
+
+	browser.menus.create({
+		parentId: `openGroup`,
+		type: `separator`
+	});
 }
