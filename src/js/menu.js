@@ -21,7 +21,6 @@ function dynamicSubmenu(menuPrefix, parentId, iteratorFn, filterFn, titleFn, ico
 				info = {
 					id: `${menuPrefix}${menuIndex}`
 					, title
-					, contexts: ['tab']
 					, onclick
 					, parentId
 				};
