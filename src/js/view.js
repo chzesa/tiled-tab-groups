@@ -291,8 +291,12 @@ function onStashed(groupId) {
 
 function onGroupCreated(groupId) {
 	let group = GRPINTERFACE.get(groupId);
-	if (!isGroupVisible(groupId)) return;
 	let grpNode = makeGroupNode(group);
+	if (!isGroupVisible(groupId)) {
+		view.stashNode.appendChild(grpNode.group);
+		return;
+	}
+
 	let frag = document.createDocumentFragment();
 
 	TABINTERFACE.forEach(function (tab) {
