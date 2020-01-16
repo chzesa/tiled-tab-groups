@@ -136,18 +136,14 @@ async function initView() {
 		})
 	});
 
-	let displayAllGroupsButton = document.getElementById('visibility-toggle-button');
-	displayAllGroupsButton.addEventListener('click', async () => {
+	document.getElementById('visibility-toggle-button').addEventListener('click', async () => {
 		STATE.drawAllGroups = !STATE.drawAllGroups;
 		await fillGroupNodes();
 		if (STATE.drawAllGroups) {
-			displayAllGroupsButton.style.backgroundImage = `url(icons/eye.svg)`;
 			await TABINTERFACE.forEach(async function (tab) {
 				updateTabNode(tab);
 				if (use_indent) updateIndent(tab.id);
 			}, WINDOW_ID);
-		} else {
-			displayAllGroupsButton.style.backgroundImage = `url(icons/eye-off.svg)`;
 		}
 	});
 
