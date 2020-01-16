@@ -52,6 +52,12 @@ async function registerView(view) {
 	});
 }
 
+async function unregisterView(id) {
+	if (CACHE.get(id).url != panoramaViewUrl) return;
+	CACHE.removeValue(id, 'groupId');
+	delete panoramaTabs[CACHE.get(id).windowId];
+}
+
 function registerPopup() {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
