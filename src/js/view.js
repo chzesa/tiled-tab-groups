@@ -71,16 +71,25 @@ async function initView() {
 	GRPINTERFACE = TABINTERFACE.getGroupInterface(WINDOW_ID);
 
 	await Promise.all([
-		browser.storage.local.get().then(pValue => {
-			use_tst_indent = pValue.use_tst_indent || false;
-			use_tst_move = pValue.use_tst_move || false;
-			use_tst_tree_close = pValue.use_tst_tree_close || false;
-			use_ftt = pValue.ftt || false;
-			if (pValue.light_theme) {
-				appendCSSFile('css/color-light.css');
+		browser.storage.local.get().then(config => {
+			use_tst_indent = config.use_tst_indent || false;
+			use_tst_move = config.use_tst_move || false;
+			use_tst_tree_close = config.use_tst_tree_close || false;
+			use_ftt = config.ftt || false;
+			switch(config.theme) {
+				case ThemeOption.System:
+					if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+						appendCSSFile('css/color-light.css');
+					}
+					break;
+				case ThemeOption.Dark:
+					break;
+				case ThemeOption.Light:
+					appendCSSFile('css/color-light.css');
+					break;
 			}
 
-			appendCSS(pValue.panorama_css);
+			appendCSS(config.panorama_css);
 		})
 	]);
 

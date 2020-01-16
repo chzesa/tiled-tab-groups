@@ -17,8 +17,7 @@ async function migrateSettings() {
 
 	function setDefaults(config) {
 		let defaults = {
-			light_theme: true
-			, regex_over_wildcard: false
+			regex_over_wildcard: false
 			, regex_nextId: 0
 			, use_tst_indent: false
 			, use_tst_tree_close: false
@@ -34,6 +33,7 @@ async function migrateSettings() {
 			, unloadGroupOnSwitch: false
 			, unstashOnTabLoad: true
 			, tabCatchStashedGrpAction: TabCatchStashedGrpAction.Unstash
+			, theme: ThemeOption.System
 		}
 
 		for (var key in defaults) {
@@ -100,6 +100,16 @@ async function migrateSettings() {
 		}
 
 		await browser.sessions.setWindowValue(max, 'rules', original_rules);
+	}
+
+	if (olderVersion(config.version, "0.18.12")) {
+		if (config.light_theme) {
+			config.theme = ThemeOption.Light
+		} else {
+			config.theme = ThemeOption.Dark;
+		}
+
+		delete config[`light_theme`];
 	}
 
 	if (olderVersion(config.version, "1.0.0")) {
