@@ -69,7 +69,7 @@ body
 	cursor: pointer;
 	width: 28px;
 	height: 28px;
-	background-image: url(/icons/eye.svg);
+	background-image: url(/icons/eye-off.svg);
 	background-repeat: no-repeat;
 	background-size: 28px;
 	background-position: center;
