@@ -21,6 +21,8 @@
 	--icon-scale: 0.7;
 
 	--selected-color: #4a93db;
+
+	--stashed-group-background-color: #c38dd4;
 }
 
 .icon:hover {

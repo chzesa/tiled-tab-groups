@@ -138,10 +138,8 @@ async function initView() {
 
 	document.getElementById('visibility-toggle-button').addEventListener('click', async () => {
 		STATE.drawAllGroups = !STATE.drawAllGroups;
-		console.log(`Draw all: ${STATE.drawAllGroups}`);
 		await fillGroupNodes();
 		if (STATE.drawAllGroups) {
-			console.log(`Updating all tabs`);
 			await TABINTERFACE.forEach(async function (tab) {
 				updateTabNode(tab);
 				if (use_indent) updateIndent(tab.id);
@@ -278,6 +276,10 @@ function onUpdated(tab, info) {
 }
 
 function onStashed(groupId) {
+	let group = GRPINTERFACE.get(groupId);
+	let grpNode = makeGroupNode(group);
+	setNodeClass(grpNode.group, 'stashed', group.stash);
+
 	if (STATE.drawAllGroups) {
 		return;
 	}
@@ -320,11 +322,9 @@ function onGroupCreated(groupId) {
 		return groupId == TABINTERFACE.getGroupId(tab.id);
 	});
 
-	setAsNthChild(frag, groupNodes[group.id].content);
-
-	var hidden = 0;
-	for (var i = 0; i < group.index; i++) {
-		if (GRPINTERFACE.getByIndex(i).stash == true) {
+	let hidden = 0;
+	for (let i = 0; i < group.index; i++) {
+		if (!isGroupVisible(GRPINTERFACE.getByIndex(i).id)) {
 			hidden++;
 		}
 	}

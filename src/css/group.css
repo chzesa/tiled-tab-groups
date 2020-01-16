@@ -56,6 +56,11 @@
 	line-height: var(--tab-height);
 }
 
+.stashed
+{
+	background-color: var(--stashed-group-background-color);
+}
+
 .group .content
 {
 	max-width: 100%;

@@ -73,6 +73,8 @@ function makeGroupNode(group) {
 		, tabCount: tabCount
 	};
 
+	if (group.stash) { node.classList.add(`stashed`); }
+
 	// Event handlers
 	close.addEventListener('click', function (event) {
 		event.stopPropagation();
