@@ -125,7 +125,7 @@ async function initView() {
 	view.dragIndicator = new_element('div', {
 		class: 'drag_indicator'
 	});
-	view.groupsNode.appendChild(view.dragIndicator);
+	document.body.appendChild(view.dragIndicator);
 	view.groupsNode.addEventListener('dragover', groupDragOver, false);
 	view.groupsNode.addEventListener('drop', outsideDrop, false);
 
