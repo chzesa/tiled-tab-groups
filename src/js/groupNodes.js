@@ -120,24 +120,33 @@ function makeGroupNode(group) {
 
 	stash.addEventListener('click', async function (event) {
 		event.stopPropagation();
+		if (GRPINTERFACE.get(group.id).stash) {
+			bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, false);
+			setNodeClass(stash, `icon-stash`, false);
+			setNodeClass(stash, `icon-unstash`, true);
+			stash.title = `Unstash group`
+		} else {
+			let groupUnloaded = true;
 
-		var groupUnloaded = true;
+			await TABINTERFACE.forEach(function (tab) {
+				if (!tab.discarded && !tab.pinned) {
+					groupUnloaded = false;
+				}
+				}, WINDOW_ID,
+				function (tab) {
+					return group.id == TABINTERFACE.getGroupId(tab.id)
+				}
+			);
 
-		await TABINTERFACE.forEach(function (tab) {
-			if (!tab.discarded && !tab.pinned) {
-				groupUnloaded = false;
+			if (groupUnloaded || window.confirm(`Stash group ${group.name}?\n` +
+					`Stashed groups can be retrieved from the popup panel.`)) {
+				bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, true);
 			}
-			}, WINDOW_ID,
-			function (tab) {
-				return group.id == TABINTERFACE.getGroupId(tab.id)
-			}
-		);
 
-		if (groupUnloaded || window.confirm(`Stash group ${group.name}?\n` +
-				`Stashed groups can be retrieved from the popup panel.`)) {
-			bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, true);
+			stash.title = 'Stash this group. Unloads all tabs in the group.'
+			setNodeClass(stash, `icon-stash`, true);
+			setNodeClass(stash, `icon-unstash`, false);
 		}
-
 	}, false);
 
 	reload.addEventListener('click', async function (event) {
