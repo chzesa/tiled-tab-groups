@@ -71,6 +71,9 @@ function makeGroupNode(group) {
 		, content: content
 		, newtab: newtab
 		, tabCount: tabCount
+		, buttons: {
+			stash, reload, unload, newtab
+		}
 	};
 
 	if (group.stash) { node.classList.add(`stashed`); }
@@ -118,13 +121,11 @@ function makeGroupNode(group) {
 		}
 	}, false);
 
+	updateGroupStashButonState(group.id);
 	stash.addEventListener('click', async function (event) {
 		event.stopPropagation();
 		if (GRPINTERFACE.get(group.id).stash) {
 			bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, false);
-			setNodeClass(stash, `icon-stash`, false);
-			setNodeClass(stash, `icon-unstash`, true);
-			stash.title = `Unstash group`
 		} else {
 			let groupUnloaded = true;
 
@@ -142,11 +143,9 @@ function makeGroupNode(group) {
 					`Stashed groups can be retrieved from the popup panel.`)) {
 				bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, true);
 			}
-
-			stash.title = 'Stash this group. Unloads all tabs in the group.'
-			setNodeClass(stash, `icon-stash`, true);
-			setNodeClass(stash, `icon-unstash`, false);
 		}
+
+		updateGroupStashButonState(group.id);
 	}, false);
 
 	reload.addEventListener('click', async function (event) {
@@ -279,4 +278,19 @@ function updateTabCountById(groupId) {
 	node.tabCount.appendChild(
 		document.createTextNode(node.content.childNodes.length)
 	);
+}
+
+function updateGroupStashButonState(groupId) {
+	let grpNode = groupNodes[groupId];
+	let stash = grpNode.buttons.stash;
+
+	if (GRPINTERFACE.get(groupId).stash) {
+		setNodeClass(stash, `icon-stash`, false);
+		setNodeClass(stash, `icon-unstash`, true);
+		stash.title = `Unstash group`
+	} else {
+		stash.title = 'Stash this group. Unloads all tabs in the group.'
+		setNodeClass(stash, `icon-stash`, true);
+		setNodeClass(stash, `icon-unstash`, false);
+	}
 }

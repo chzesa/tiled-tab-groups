@@ -293,7 +293,7 @@ function onStashed(groupId) {
 	let group = GRPINTERFACE.get(groupId);
 	let grpNode = makeGroupNode(group);
 	setNodeClass(grpNode.group, 'stashed', group.stash);
-
+	updateGroupStashButonState(groupId);
 	if (STATE.drawAllGroups) {
 		return;
 	}
