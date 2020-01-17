@@ -273,7 +273,7 @@ function onUpdated(tab, info) {
 	else {
 		let groupId = TABINTERFACE.getGroupId(tab.id);
 		let grp = GRPINTERFACE.get(groupId);
-		if (groupId == -1 || (grp != null && grp.stash)) {
+		if (groupId == -1 || !isGroupVisible(groupId)) {
 			if ('pinned' in info) {
 				deleteTabNode(tab.id);
 			}
