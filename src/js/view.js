@@ -31,6 +31,8 @@ let STATE = {
 	drawAllGroups: false
 };
 
+let displayAllGroupsButton;
+
 async function initView() {
 	bgPage = browser.extension.getBackgroundPage();
 	view.groupsNode = document.getElementById('groups');
@@ -136,20 +138,8 @@ async function initView() {
 		})
 	});
 
-	let displayAllGroupsButton = document.getElementById('visibility-toggle-button');
-	displayAllGroupsButton.addEventListener('click', async () => {
-		STATE.drawAllGroups = !STATE.drawAllGroups;
-		await fillGroupNodes();
-		if (STATE.drawAllGroups) {
-			displayAllGroupsButton.style.backgroundImage = `url(icons/eye.svg)`;
-			await TABINTERFACE.forEach(async function (tab) {
-				updateTabNode(tab);
-				if (use_indent) updateIndent(tab.id);
-			}, WINDOW_ID);
-		} else {
-			displayAllGroupsButton.style.backgroundImage = `url(icons/eye-off.svg)`;
-		}
-	});
+	displayAllGroupsButton = document.getElementById('visibility-toggle-button');
+	displayAllGroupsButton.addEventListener('click', () => bgPage.enqueueTask(toggleAllGroupsVisibility));
 
 	Selected.init(function () {
 		let o = {};
@@ -193,9 +183,29 @@ async function initView() {
 	window.addEventListener("beforeunload", e => {
 		bgPage.enqueueTask(bgPage.unregisterView, TAB_ID);
 	});
+
+	browser.sessions.getWindowValue(WINDOW_ID, `groupsViewDisplayAllGroups`).then(v => {
+		if (v != STATE.drawAllGroups) bgPage.enqueueTask(toggleAllGroupsVisibility);
+	});
 }
 
 document.addEventListener('DOMContentLoaded', initView, false);
+
+async function toggleAllGroupsVisibility() {
+	STATE.drawAllGroups = !STATE.drawAllGroups;
+	browser.sessions.setWindowValue(WINDOW_ID, `groupsViewDisplayAllGroups`, STATE.drawAllGroups);
+	await fillGroupNodes();
+	if (STATE.drawAllGroups) {
+		displayAllGroupsButton.style.backgroundImage = `url(icons/eye.svg)`;
+		await TABINTERFACE.forEach(async function (tab) {
+			updateTabNode(tab);
+			if (use_indent) updateIndent(tab.id);
+		}, WINDOW_ID);
+	} else {
+		displayAllGroupsButton.style.backgroundImage = `url(icons/eye-off.svg)`;
+	}
+
+}
 
 function isGroupVisible(groupId) {
 	return STATE.drawAllGroups || !GRPINTERFACE.get(groupId).stash;
