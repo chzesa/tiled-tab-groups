@@ -342,7 +342,7 @@ function onGroupCreated(groupId) {
 			hidden++;
 		}
 	}
-
+	setAsNthChild(frag, groupNodes[group.id].content);
 	setAsNthChild(grpNode.group, view.groupsNode, group.index - hidden);
 	updateTabCountById(groupId);
 }
