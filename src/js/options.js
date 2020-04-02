@@ -343,7 +343,10 @@ async function insertShortcutOptions() {
 		input.addEventListener('blur', function () {
 			try {
 				if (input.value == null || input.value == '') {
-					browser.commands.reset(cmd.name);
+					browser.commands.update({
+						name: cmd.name,
+						shortcut: ''
+					});
 				}
 				else {
 					browser.commands.update({
