@@ -347,8 +347,6 @@ function getGroup(windowId, groupId) {
 
 function setActiveGroup(windowId, groupId) {
 	if (ACTIVEGROUP[windowId] == groupId) return;
-	// await setStash(windowId, groupId, false);
-
 	browser.sessions.setWindowValue(windowId, 'activeGroup', groupId);
 	ACTIVEGROUP[windowId] = groupId;
 	updateWindow(windowId);

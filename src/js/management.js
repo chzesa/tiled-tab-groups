@@ -108,11 +108,6 @@ function newGroupsManager() {
 			node.update(group);
 		});
 
-		// node.close = new_element(`div`, {
-		// 	class: 'icon icon-close'
-		// 	, title: 'Close group'
-		// });
-
 		node.elem = new_element(`div`, {
 			class: 'tab'
 			, style: 'cursor:default'

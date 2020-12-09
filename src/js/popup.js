@@ -73,10 +73,7 @@ async function init() {
 			return;
 		}
 
-		await bgPage.enqueueTask(async function () {
-			await bgPage.switchToGroup(WINDOW_ID, numKeyTargets[num]);
-		});
-
+		await bgPage.enqueueTask(bgPage.switchToGroup, WINDOW_ID, numKeyTargets[num]);
 		window.close();
 	});
 
@@ -104,9 +101,7 @@ async function makeGroupNodes() {
 			if (group.stash) {
 				return;
 			}
-			await bgPage.enqueueTask(async function () {
-				await bgPage.switchToGroup(WINDOW_ID, group.id);
-			});
+			await bgPage.enqueueTask(bgPage.switchToGroup, WINDOW_ID, group.id);
 
 			window.close();
 		}

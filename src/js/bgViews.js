@@ -16,7 +16,7 @@ async function removeViewTab(id) {
 	}
 }
 
-async function registerView(view) {
+function registerView(view) {
 	return new Promise(async function (res, rej) {
 		async function attemptResolve() {
 			if (CACHE == null) {

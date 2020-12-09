@@ -208,8 +208,6 @@ function menuCreateInfo(id, title, callback, parentId) {
 		id
 		, title
 		, contexts: ['tab']
-		// , viewTypes: ['sidebar']
-		// , documentUrlPatterns: [SIDEBAR_MENU_PATTERN]
 		, onclick: callback
 		, parentId
 	};
