@@ -25,7 +25,8 @@ body
 	color: var(--active-color);
 }
 
-.group:hover
+.group:hover,
+.group:focus
 {
 	color: var(--hover-color);
 }
@@ -36,7 +37,8 @@ body
 	color: var(--text-medium);
 }
 
-#stash > .group:hover
+#stash > .group:hover,
+#stash > .group:focus
 {
 	color: var(--text-light);
 }
