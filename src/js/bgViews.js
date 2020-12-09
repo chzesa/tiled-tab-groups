@@ -32,13 +32,8 @@ function registerView(view) {
 			};
 			setGroupId(view.tabId, -1);
 
-			try {
-				if (previousView != null && previousView.tabId != view.tabId) {
-					removeViewTab(previousView.tabId);
-				}
-			}
-			catch (e) {
-				console.log(e);
+			if (previousView != null && previousView.tabId != view.tabId) {
+				removeViewTab(previousView.tabId);
 			}
 
 			res(CACHE);
