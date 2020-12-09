@@ -99,6 +99,25 @@ function updateActive() {
 
 async function makeGroupNodes() {
 	await GRPIFC.forEach(function (group) {
+		async function selectNode(event) {
+			event.stopPropagation();
+			if (group.stash) {
+				return;
+			}
+			await bgPage.enqueueTask(async function () {
+				await bgPage.switchToGroup(WINDOW_ID, group.id);
+			});
+
+			window.close();
+		}
+		async function unstashNode(event) {
+			event.stopPropagation();
+
+			await bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, false);
+			nodes[group.id].stash = false;
+			updateGroupNodes();
+		}
+
 		let text = new_element('div', {
 			class: 'name'
 			, content: group.name
@@ -111,26 +130,25 @@ async function makeGroupNodes() {
 
 		let node = new_element('div', {
 			class: 'group'
+			, tabindex: group.id + 1
 		}, [text, unstash]);
 
 		unstash.addEventListener('click', async function (event) {
-			event.stopPropagation();
+			unstashNode(event);
+		});
 
-			await bgPage.enqueueTask(bgPage.setStash, WINDOW_ID, group.id, false);
-			nodes[group.id].stash = false;
-			updateGroupNodes();
+		node.addEventListener('keypress', async function (event) {
+			if (event.keyCode === 13) {
+				if (group.stash) {
+					unstashNode(event);
+				} else {
+				selectNode(event);
+				}
+			}
 		});
 
 		node.addEventListener('click', async function (event) {
-			event.stopPropagation();
-			if (group.stash) {
-				return;
-			}
-			await bgPage.enqueueTask(async function () {
-				await bgPage.switchToGroup(WINDOW_ID, group.id);
-			});
-
-			window.close();
+			selectNode(event);
 		});
 
 		let groupNode = {
