@@ -10,7 +10,6 @@ async function removeViewTab(id) {
 		});
 
 		await browser.tabs.remove(id);
-		delete panoramaTabs[CACHE.get(id).windowId];
 	} catch(e) {
 		console.log(e);
 	}
