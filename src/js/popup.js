@@ -125,7 +125,6 @@ async function makeGroupNodes() {
 
 		let node = new_element('div', {
 			class: 'group'
-			, tabindex: group.index + 1
 		}, [text, unstash]);
 
 		unstash.addEventListener('click', async function (event) {
@@ -137,7 +136,7 @@ async function makeGroupNodes() {
 				if (group.stash) {
 					unstashNode(event);
 				} else {
-				selectNode(event);
+					selectNode(event);
 				}
 			}
 		});
@@ -165,6 +164,11 @@ async function updateGroupNodes() {
 
 	await GRPIFC.forEach(function (group) {
 		let node = nodes[group.id];
+		let tabindex = group.stash
+			? group.index + GRPIFC.size()
+			: group.index + 1
+
+		node.html.setAttribute('tabindex', tabindex)
 
 		if (node.stash) {
 			stashHolder.appendChild(node.html);
@@ -175,7 +179,6 @@ async function updateGroupNodes() {
 				numKeyTargets[i] = node.id;
 				node.text.innerHTML = `[${i}] ${node.name}`;
 			}
-
 
 			groupsHolder.appendChild(node.html);
 		}

@@ -111,6 +111,10 @@ async function groupInterface(windowId) {
 		return array[index % array.length];
 	}
 
+	self.size = function () {
+		return Object.keys(groups).length;
+	}
+
 	self.forEach = async function (callback) {
 		let promises = [];
 		let n = array.length;
