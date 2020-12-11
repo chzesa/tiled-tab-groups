@@ -125,7 +125,7 @@ async function makeGroupNodes() {
 
 		let node = new_element('div', {
 			class: 'group'
-			, tabindex: group.id + 1
+			, tabindex: 0
 		}, [text, unstash]);
 
 		unstash.addEventListener('click', async function (event) {
