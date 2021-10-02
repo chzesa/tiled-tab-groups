@@ -624,14 +624,12 @@ function start() {
 	});
 
 	browser.sessions.onChanged.addListener(() => {
-		console.log(`browser.sessions.onChanged`)
 		if (SESSION_EVENT_COUNT > 0)
 			POTENTIAL_SESSION_RELOAD_EVENT = false
 
 		if (SESSION_EVENT_COUNT++ == 0)
 			POTENTIAL_SESSION_RELOAD_EVENT = true
 			QUEUE.do(async () => {
-				console.log(`browser.sessions.onChanged queue item resolved`)
 				if (POTENTIAL_SESSION_RELOAD_EVENT && TAB_CREATE_COUNT > 1)
 					browser.runtime.reload();
 				else {
