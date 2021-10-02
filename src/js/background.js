@@ -629,12 +629,13 @@ function start() {
 
 		if (SESSION_EVENT_COUNT++ == 0)
 			POTENTIAL_SESSION_RELOAD_EVENT = true
+			TAB_CREATE_COUNT = 0
+			SESSION_EVENT_COUNT = 0
 			QUEUE.do(async () => {
 				if (POTENTIAL_SESSION_RELOAD_EVENT && TAB_CREATE_COUNT > 1)
 					browser.runtime.reload();
 				else {
 					SESSION_EVENT_COUNT = 0
-					TAB_CREATE_COUNT = 0
 				}
 			})
 	})
