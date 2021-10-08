@@ -627,7 +627,7 @@ function start() {
 		if (SESSION_EVENT_COUNT > 0)
 			POTENTIAL_SESSION_RELOAD_EVENT = false
 
-		if (SESSION_EVENT_COUNT++ == 0)
+		if (SESSION_EVENT_COUNT == 0) {
 			POTENTIAL_SESSION_RELOAD_EVENT = true
 			TAB_CREATE_COUNT = 0
 			SESSION_EVENT_COUNT = 0
@@ -638,6 +638,9 @@ function start() {
 					SESSION_EVENT_COUNT = 0
 				}
 			})
+		}
+
+		SESSION_EVENT_COUNT++;
 	})
 
 	CACHE.init(init);
