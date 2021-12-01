@@ -345,6 +345,39 @@ function createFakeTabMenu() {
 	separator.id = 's2';
 	browser.menus.create(separator);
 
+	browser.menus.create(menuCreateInfo('moveSelection', 'Place &Selection', null));
+
+	browser.menus.create(menuCreateInfo('moveSelectionBefore', '&Before tab', async (info, tab) => {
+		let ids = await menuGetSelection(tab);
+		let windowId = tab.windowId
+		let index = tab.index
+
+		ids.forEach(id => index -= CACHE.get(id).index < tab.index ? 1 : 0)
+
+		browser.tabs.move(ids, {
+			index,
+			windowId,
+		});
+
+		setGroupId(ids, CACHE.getValue(tab.id, 'groupId'), tab.windowId)
+	}, 'moveSelection'));
+
+	browser.menus.create(menuCreateInfo('moveSelectionAfter', '&After tab', async (info, tab) => {
+		let ids = await menuGetSelection(tab);
+		let windowId = tab.windowId
+		let index = tab.index + 1
+
+		ids.forEach(id => index -= CACHE.get(id).index < tab.index ? 1 : 0)
+
+
+		browser.tabs.move(ids, {
+			index,
+			windowId,
+		});
+
+		setGroupId(ids, CACHE.getValue(tab.id, 'groupId'), tab.windowId)
+	}, 'moveSelection'));
+
 	browser.menus.create(menuCreateInfo('unload', 'U&nload Tab', async (info, tab) => {
 		browser.tabs.discard(await menuGetSelection(tab));
 	}));
