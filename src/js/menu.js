@@ -371,10 +371,9 @@ function createFakeTabMenu() {
 	browser.menus.create(menuCreateInfo('moveSelectionAfter', '&After tab', async (info, tab) => {
 		let ids = await menuGetSelection(tab);
 		let windowId = tab.windowId
-		let index = tab.index + 1
+		let index = tab.index
 
-		ids.forEach(id => index -= CACHE.get(id).index < tab.index ? 1 : 0)
-
+		ids.forEach(id => index += CACHE.get(id).index >= tab.index ? 1 : 0)
 
 		browser.tabs.move(ids, {
 			index,
