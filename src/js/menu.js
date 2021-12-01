@@ -140,7 +140,7 @@ let LAST_CONTEXT = false;
 async function initContextMenu() {
 	const menus = [
 		'reload', 'mute', 'pin', 'duplicate', 'bookmark', 'move', 'unload', 'close',
-		's1', 's2'
+		's1', 's2', 'moveSelection'
 	];
 
 	await createFakeTabMenu();
