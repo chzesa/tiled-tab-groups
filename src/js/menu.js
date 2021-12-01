@@ -182,11 +182,17 @@ async function initContextMenu() {
 	browser.menus.onShown.addListener(function (info, tab) {
 		let changed = false;
 		if (info.contexts.includes('tab')) {
-
 			if (VIEW_CONTEXT_SHOWN != LAST_CONTEXT) {
 				menus.forEach(id => browser.menus.update(id, { visible: VIEW_CONTEXT_SHOWN }));
 				changed = true;
 				LAST_CONTEXT = VIEW_CONTEXT_SHOWN;
+			}
+
+			if (VIEW_CONTEXT_SHOWN && panoramaTabs[tab.windowId]) {
+				browser.menus.update('moveSelection',{
+					visible: panoramaTabs[tab.windowId].view.querySelection().length > 0
+				})
+				changed = true
 			}
 
 			changed = moveToWindowSubmenu.update(tab) || changed;

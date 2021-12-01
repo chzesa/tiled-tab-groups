@@ -64,6 +64,10 @@ async function initView() {
 				Selected.clear();
 				return ret;
 			}
+			, querySelection: function () {
+				let ret = Selected.get();
+				return ret;
+			}
 			, clearSelection: function () {
 				Selected.clear();
 			}
