@@ -413,7 +413,7 @@ function updateWindow(windowId) {
 	CACHE.forEach(function(tab) {
 		if (CACHE.getValue(tab.id, 'groupId') == activeGroupId) {
 			show.push(tab.id);
-		} else {
+		} else if (!tab.hidden) {
 			hide.push(tab.id);
 		}
 	}, windowId);
