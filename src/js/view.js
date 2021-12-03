@@ -34,6 +34,29 @@ let STATE = {
 let displayAllGroupsButton;
 
 async function initView() {
+	await Promise.all([
+		browser.storage.local.get().then(config => {
+			use_tst_indent = config.use_tst_indent || false;
+			use_tst_move = config.use_tst_move || false;
+			use_tst_tree_close = config.use_tst_tree_close || false;
+			use_ftt = config.ftt || false;
+			switch(config.theme) {
+				case ThemeOption.System:
+					if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+						appendCSSFile('css/color-light.css');
+					}
+					break;
+				case ThemeOption.Dark:
+					break;
+				case ThemeOption.Light:
+					appendCSSFile('css/color-light.css');
+					break;
+			}
+
+			appendCSS(config.panorama_css);
+		})
+	]);
+
 	bgPage = browser.extension.getBackgroundPage();
 	view.groupsNode = document.getElementById('groups');
 	view.stashNode = document.getElementById('pool');
@@ -75,30 +98,6 @@ async function initView() {
 	}
 
 	GRPINTERFACE = TABINTERFACE.getGroupInterface(WINDOW_ID);
-
-	await Promise.all([
-		browser.storage.local.get().then(config => {
-			use_tst_indent = config.use_tst_indent || false;
-			use_tst_move = config.use_tst_move || false;
-			use_tst_tree_close = config.use_tst_tree_close || false;
-			use_ftt = config.ftt || false;
-			switch(config.theme) {
-				case ThemeOption.System:
-					if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-						appendCSSFile('css/color-light.css');
-					}
-					break;
-				case ThemeOption.Dark:
-					break;
-				case ThemeOption.Light:
-					appendCSSFile('css/color-light.css');
-					break;
-			}
-
-			appendCSS(config.panorama_css);
-		})
-	]);
-
 	await fillGroupNodes();
 	await setActiveTabNode();
 
