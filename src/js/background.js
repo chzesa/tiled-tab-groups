@@ -9,10 +9,6 @@ let CONFIG = {};
 
 var selectionSourceWindowId;
 
-let POTENTIAL_SESSION_RELOAD_EVENT = true;
-let TAB_CREATE_COUNT = 0
-let SESSION_EVENT_COUNT = 0
-
 function setSelectionSourceWindow(windowId) {
 	selectionSourceWindowId = windowId;
 }
@@ -500,7 +496,6 @@ async function onAttached(tab, info) {
 }
 
 async function onCreated(tab) {
-	TAB_CREATE_COUNT++;
 	let windowId = tab.windowId;
 	let groupId = CACHE.getValue(tab.id, 'groupId');
 	if (groupId == null || groupId == -1) {
@@ -510,6 +505,8 @@ async function onCreated(tab) {
 
 		groupId = ACTIVEGROUP[windowId];
 		CACHE.setValue(tab.id, 'groupId', groupId);
+	} else if (WINDOWGROUPS[windowId] == null) {
+		browser.runtime.reload()
 	}
 
 	if (tab.active) {
@@ -526,7 +523,6 @@ async function onMoved(tab, info) {
 }
 
 async function onRemoved(tab, info, values) {
-	POTENTIAL_SESSION_RELOAD_EVENT = false;
 	let groupId = values.groupId;
 	let windowId = tab.windowId;
 
@@ -622,26 +618,6 @@ function start() {
 	browser.commands.onCommand.addListener(async function (command) {
 		QUEUE.do(onCommand, command);
 	});
-
-	browser.sessions.onChanged.addListener(() => {
-		if (SESSION_EVENT_COUNT > 0)
-			POTENTIAL_SESSION_RELOAD_EVENT = false
-
-		if (SESSION_EVENT_COUNT == 0) {
-			POTENTIAL_SESSION_RELOAD_EVENT = true
-			TAB_CREATE_COUNT = 0
-			SESSION_EVENT_COUNT = 0
-			QUEUE.do(async () => {
-				if (POTENTIAL_SESSION_RELOAD_EVENT && TAB_CREATE_COUNT > 1)
-					browser.runtime.reload();
-				else {
-					SESSION_EVENT_COUNT = 0
-				}
-			})
-		}
-
-		SESSION_EVENT_COUNT++;
-	})
 
 	CACHE.init(init);
 }
