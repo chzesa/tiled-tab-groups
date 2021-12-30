@@ -505,7 +505,7 @@ async function onCreated(tab) {
 
 		groupId = ACTIVEGROUP[windowId];
 		CACHE.setValue(tab.id, 'groupId', groupId);
-	} else if (WINDOWGROUPS[windowId] == null) {
+	} else if (WINDOWGROUPS[windowId] == null || WINDOWGROUPS[windowId].get(groupId) == null) {
 		browser.runtime.reload()
 	}
 
