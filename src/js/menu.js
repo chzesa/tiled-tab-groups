@@ -102,7 +102,6 @@ async function openLinkInGroup(info, opener) {
 
 	browser.tabs.create({
 		active: false,
-		cookieStoreId: opener.cookieStoreId,
 		openerTabId: opener.id,
 		url: info.linkUrl
 	}).then(tab => {
@@ -413,7 +412,6 @@ function createFakeTabMenu() {
 
 			browser.tabs.create({
 				active: false,
-				cookieStoreId: opener.cookieStoreId,
 				openerTabId: opener.id,
 				url: info.linkUrl
 			}).then(tab => {
